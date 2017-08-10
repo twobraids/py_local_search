@@ -33,7 +33,8 @@ class URLStatsCounterWithProbability(URLStatsCounter):
 
     def subsume(self, other_URLStatsCounter):
         super(URLStatsCounterWithProbability, self).subsume(other_URLStatsCounter)
-        self.p = other_URLStatsCounter.p
+        self.p += other_URLStatsCounter.p
+        #self.o =  # TODO: what here?
 
 
 class URLs(MutableMapping, RequiredConfig):
@@ -73,8 +74,6 @@ class URLs(MutableMapping, RequiredConfig):
         return len(self.urls)
 
 
-
-
 class QueryURLDatabase(MutableMapping, RequiredConfig):
     required_config = Namespace()
     required_config.add_option(
@@ -96,9 +95,15 @@ class QueryURLDatabase(MutableMapping, RequiredConfig):
         self.queries_and_urls[q_u_tuple[0]].add(q_u_tuple[1])
 
     def subsume_those_not_present(self, other_query_url_database):
+        to_be_deleted_list = []
         for q, u in self.items():
             if (q, u) not in other_query_url_database:
                 self['*']['*'].subsume(self[q][u])
+                to_be_deleted_list.append((q, u))
+        for q, u in to_be_deleted_list:
+            del self[q][u]
+            del self[q]
+
 
     def __getitem__(self, query):
         return self.queries_and_urls[query]
