@@ -8,9 +8,11 @@ from configman.dotdict import (
 )
 from working_structures import (
     URLStatsCounter,
+    URLStatsCounterWithProbability,
     URLStatusMappingClass,
     QueryURLMappingClass,
-    createHeadList
+    create_headList,
+    estimate_optin_probabilities
 )
 
 
@@ -101,6 +103,8 @@ class TestQueryURLMappingClass(TestCase):
 
         self.assertTrue(q_u_db.config is config)
         self.assertTrue(isinstance(q_u_db.queries_and_urls, Mapping))
+        self.assertEqual(q_u_db.count, 0)
+
 
     def test_add(self):
         config = DotDict()
@@ -111,11 +115,14 @@ class TestQueryURLMappingClass(TestCase):
 
         self.assertTrue('a_query' in q_u_db)
         self.assertTrue('a_url' in q_u_db['a_query'])
+        self.assertEqual(q_u_db.count, 1)
 
         q_u_db.add(('a_query', 'a_url'))
         self.assertTrue('a_query' in q_u_db)
         self.assertTrue('a_url' in q_u_db['a_query'])
         self.assertEqual(q_u_db['a_query']['a_url'].count, 2)
+        self.assertEqual(q_u_db.count, 2)
+
 
     def test_iter_records(self):
         config = DotDict()
@@ -134,11 +141,16 @@ class TestQueryURLMappingClass(TestCase):
         ]
         for q_u in q_u_pairs:
             q_u_db.add(q_u)
+
         for i, q_u in enumerate(q_u_pairs):
             q, u = q_u
             self.assertTrue(q in q_u_db)
             self.assertTrue(u in q_u_db[q])
-        self.assertEqual(i, 7)
+
+        # count of keys
+        self.assertEqual(len(q_u_db), 4)
+        # count of all pairs even duplicates
+        self.assertEqual(q_u_db.count, 8)
 
         self.assertEqual(q_u_db['q1']['u1'].count, 2)
         self.assertEqual(q_u_db['q2']['u1'].count, 1)
@@ -148,11 +160,11 @@ class TestQueryURLMappingClass(TestCase):
         self.assertEqual(q_u_db['q4']['u5'].count, 1)
 
 
-    def test_add_url_star_to_all_entries(self):
+    def test_subsume_those_not_present(self):
         config = DotDict()
         config.url_stats_class = URLStatsCounter
         config.url_mapping_class = URLStatusMappingClass
-        q_u_db = QueryURLMappingClass(config)
+        reference_q_u_db = QueryURLMappingClass(config)
         q_u_pairs = [
             ('q1', 'u1'),
             ('q1', 'u1'),
@@ -164,14 +176,29 @@ class TestQueryURLMappingClass(TestCase):
             ('q4', 'u4'),
         ]
         for q_u in q_u_pairs:
-            q_u_db.add(q_u)
+            reference_q_u_db.add(q_u)
 
-        q_u_db.add_url_star_to_all_entries()
+        test_q_u_db = QueryURLMappingClass(config)
+        for q_u in q_u_pairs:
+            test_q_u_db.add(q_u)
+        additional_q_u_pairs = [
+            ('q5', 'u1'),
+            ('q6', 'u1'),
+            ('q7', 'u1'),
+            ('q8', 'u2'),
+            ('q9', 'u3'),
+            ('q8', 'u4'),
+            ('q7', 'u5'),
+            ('q4', 'u9'),
+        ]
+        for q_u in additional_q_u_pairs:
+            test_q_u_db.add(q_u)
 
-        self.assertEqual(q_u_db['q1']['*'].count, 0)
-        self.assertEqual(q_u_db['q2']['*'].count, 0)
-        self.assertEqual(q_u_db['q3']['*'].count, 0)
-        self.assertEqual(q_u_db['q4']['*'].count, 0)
+        test_q_u_db.subsume_those_not_present(reference_q_u_db)
+
+        self.assertTrue('*' in test_q_u_db)
+        self.assertEqual(test_q_u_db['*']['*'].count, 8)
+        self.assertTrue('u9' not in test_q_u_db['q4'])
 
 
 class TestCreateHeadList(TestCase):
@@ -199,11 +226,11 @@ class TestCreateHeadList(TestCase):
         config.opt_in_db = DotDictWithAcquisition()
         config.opt_in_db.headlist_base_class = QueryURLMappingClass
         config.opt_in_db.url_stats_class = URLStatsCounter
-        config.opt_in_db.url_mapping_class = URLStatusMappingClass
+        config.opt_in_db.url_mapping_class = y
 
         config.head_list_db = DotDictWithAcquisition()
         config.head_list_db.headlist_base_class = QueryURLMappingClass
-        config.head_list_db.url_stats_class = URLStatsCounter
+        config.head_list_db.url_stats_class = URLStatsCounterWithProbability
         config.head_list_db.url_mapping_class = URLStatusMappingClass
 
         config.epsilon = 4.0
@@ -212,7 +239,7 @@ class TestCreateHeadList(TestCase):
 
         optin_db = self._create_optin_db(config.opt_in_db)
 
-        head_list = createHeadList(config.head_list_db, optin_db)
+        head_list = create_headList(config.head_list_db, optin_db)
 
         self.assertEqual(len(head_list), 2)
         self.assertEqual(len(list(head_list.iter_records())), 3)

@@ -95,19 +95,25 @@ class QueryURLMappingClass(MutableMapping, RequiredConfig):
         # allows the instantiated URL class to use dependency injection too, by passing the
         # the configuration in during instantiation
         self.queries_and_urls = defaultdict(partial(self.config.url_mapping_class, self.config))
+        self.count = 0
 
     def add(self, q_u_tuple):
         self.queries_and_urls[q_u_tuple[0]].add(q_u_tuple[1])
+        self.count += 1
 
     def subsume_those_not_present(self, other_query_url_mapping):
         to_be_deleted_list = []
-        for q, u in self.items():
-            if (q, u) not in other_query_url_mapping:
+        if '*' not in self.queries_and_urls:
+            self['*'].touch('*')
+        for q, u in self.iter_records():
+            if q == '*': continue
+            if q not in other_query_url_mapping or u not in other_query_url_mapping[q]:
                 self['*']['*'].subsume(self[q][u])
                 to_be_deleted_list.append((q, u))
         for q, u in to_be_deleted_list:
             del self[q][u]
-            del self[q]
+            if not len(self[q]):
+                del self[q]
 
 
     def __getitem__(self, query):
@@ -134,14 +140,10 @@ class QueryURLMappingClass(MutableMapping, RequiredConfig):
             for a_url in url_mapping.keys():
                 yield a_query, a_url
 
-    # domain actions
-    def add_url_star_to_all_entries(self):
-        for a_url_collecton in self.values():
-            a_url_collecton.touch('*')
-
 
 
 required_config = Namespace()
+
 required_config.namespace('opt_in_db')
 required_config.opt_in_db.add_option(
     name="optin_db_class",
@@ -149,6 +151,7 @@ required_config.opt_in_db.add_option(
     from_string_converter=class_converter,
     doc="dependency injection of a class to serve as the base class for HeadList"
 )
+
 required_config.namespace('head_list_db')
 required_config.head_list_db.add_option(
     name="headlist_base_class",
@@ -156,6 +159,7 @@ required_config.head_list_db.add_option(
     from_string_converter=class_converter,
     doc="dependency injection of a class to serve as the base class for HeadList"
 )
+
 required_config.add_option(
     "epsilon",
     default=4.0,
@@ -181,23 +185,29 @@ from numpy.random import (
 )
 
 
-def createHeadList(config, optin_database):
+def create_headList(config, optin_database):
     class HeadList(config.headlist_base_class):
-        def __init__(self, config, optin_database):
+        def __init__(self, config, optin_database_s):
             super(HeadList, self).__init__(config)
-            self.optin_database = optin_database
+            #self.optin_database_s = optin_database_s
             self.epsilon = config.epsilon
             self.delta = config.delta
             self.m_o = config.m_o
 
-            b_s = 2 * self.m_o / self.epsilon
+            b_s = 2.0 * self.m_o / self.epsilon
             # from Figure 3, CreateHeadList, line 7
             sigma = b_s * (ln(exp(self.epsilon/2.0) + self.m_o - 1.0) - ln(self.delta))
             assert sigma >= 1
-            for query, url in optin_database.iter_records():
+            for query, url in optin_database_s.iter_records():
                 y = laplace(b_s)  # TODO: understand and select correct parameter
-                if optin_database[query][url].count + y > sigma:
+                if optin_database_s[query][url].count + y > sigma:
                     self.add((query, url))
             self.add(('*', '*'))
 
     return HeadList(config, optin_database)
+
+def estimate_optin_probabilities(config, head_list, optin_database_t):
+    optin_database_t.subsume_those_not_present(head_list)
+    b_t = 2.0 * config.m_o / config.epsilon
+
+
