@@ -226,7 +226,7 @@ class TestCreateHeadList(TestCase):
         config.opt_in_db = DotDictWithAcquisition()
         config.opt_in_db.headlist_base_class = QueryURLMappingClass
         config.opt_in_db.url_stats_class = URLStatsCounter
-        config.opt_in_db.url_mapping_class = y
+        config.opt_in_db.url_mapping_class = URLStatusMappingClass
 
         config.head_list_db = DotDictWithAcquisition()
         config.head_list_db.headlist_base_class = QueryURLMappingClass

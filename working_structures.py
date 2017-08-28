@@ -78,6 +78,15 @@ class URLStatusMappingClass(MutableMapping, RequiredConfig):
         return key in self.urls
 
 
+class QueryProbabilityWithURLStatusMappingClass(URLStatusMappingClass):
+    def __init__(self, config):
+        super(QueryProbabilityWithURLStatusMappingClass, self).__init__(config)
+        self.p = 0
+
+
+
+
+
 class QueryURLMappingClass(MutableMapping, RequiredConfig):
     """a mapping of queries to URL mappings"""
     required_config = Namespace()
@@ -185,29 +194,24 @@ from numpy.random import (
 )
 
 
-def create_headList(config, optin_database):
-    class HeadList(config.headlist_base_class):
-        def __init__(self, config, optin_database_s):
-            super(HeadList, self).__init__(config)
-            #self.optin_database_s = optin_database_s
-            self.epsilon = config.epsilon
-            self.delta = config.delta
-            self.m_o = config.m_o
+def create_headList(config, optin_database_s):
+    preliminary_head_list = config.head_list_db.headlist_base_class(config.head_list_db)
 
-            b_s = 2.0 * self.m_o / self.epsilon
-            # from Figure 3, CreateHeadList, line 7
-            sigma = b_s * (ln(exp(self.epsilon/2.0) + self.m_o - 1.0) - ln(self.delta))
-            assert sigma >= 1
-            for query, url in optin_database_s.iter_records():
-                y = laplace(b_s)  # TODO: understand and select correct parameter
-                if optin_database_s[query][url].count + y > sigma:
-                    self.add((query, url))
-            self.add(('*', '*'))
+    b_s = 2.0 * config.m_o / config.epsilon
+    # from Figure 3, CreateHeadList, line 7
+    tau = b_s * (ln(exp(config.epsilon/2.0) + config.m_o - 1.0) - ln(config.delta))
+    assert tau >= 1
+    for query, url in optin_database_s.iter_records():
+        y = laplace(b_s)  # TODO: understand and select correct parameter
+        if optin_database_s[query][url].count + y > tau:
+            preliminary_head_list.add((query, url))
+    preliminary_head_list.add(('*', '*'))
 
-    return HeadList(config, optin_database)
+    return preliminary_head_list
 
-def estimate_optin_probabilities(config, head_list, optin_database_t):
-    optin_database_t.subsume_those_not_present(head_list)
+
+def estimate_optin_probabilities(config, preliminary_head_list, optin_database_t):
+    optin_database_t.subsume_those_not_present(preliminary_head_list)
     b_t = 2.0 * config.m_o / config.epsilon
 
 
