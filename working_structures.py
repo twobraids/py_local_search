@@ -37,7 +37,8 @@ class URLStatsCounterWithProbability(URLStatsCounter):
         #self.o =  # TODO: what here?
 
 
-class URLs(MutableMapping, RequiredConfig):
+class URLStatusMappingClass(MutableMapping, RequiredConfig):
+    """A mapping of URLs to URL stats classes"""
     required_config = Namespace()
     required_config.add_option(
         name="url_stats_class",
@@ -74,13 +75,14 @@ class URLs(MutableMapping, RequiredConfig):
         return len(self.urls)
 
 
-class QueryURLDatabase(MutableMapping, RequiredConfig):
+class QueryURLMappingClass(MutableMapping, RequiredConfig):
+    """a mapping of queries to URL mappings"""
     required_config = Namespace()
     required_config.add_option(
-        name="url_class",
-        default="URLs",
+        name="url_mapping_class",
+        default="URLStatusMappingClass",
         from_string_converter=class_converter,
-        doc="dependency injection of a class to represent URLs"
+        doc="dependency injection of a class to represent a mapping of URLs to URL stats objects"
     )
     def __init__(self, config):
         self.config = config
@@ -89,15 +91,15 @@ class QueryURLDatabase(MutableMapping, RequiredConfig):
         # to a function to create instances of the value class of the dictionary.  Using 'partial'
         # allows the instantiated URL class to use dependency injection too, by passing the
         # the configuration in during instantiation
-        self.queries_and_urls = defaultdict(partial(self.config.url_class, self.config))
+        self.queries_and_urls = defaultdict(partial(self.config.url_mapping_class, self.config))
 
     def add(self, q_u_tuple):
         self.queries_and_urls[q_u_tuple[0]].add(q_u_tuple[1])
 
-    def subsume_those_not_present(self, other_query_url_database):
+    def subsume_those_not_present(self, other_query_url_mapping):
         to_be_deleted_list = []
         for q, u in self.items():
-            if (q, u) not in other_query_url_database:
+            if (q, u) not in other_query_url_mapping:
                 self['*']['*'].subsume(self[q][u])
                 to_be_deleted_list.append((q, u))
         for q, u in to_be_deleted_list:
@@ -136,7 +138,7 @@ class QueryURLDatabase(MutableMapping, RequiredConfig):
 required_config = Namespace()
 required_config.add_option(
     name="headlist_base",
-    default=QueryURLDatabase,
+    default=QueryURLMappingClass,
     from_string_converter=class_converter,
     doc="dependency injection of a class to serve as the base class for HeadList"
 )

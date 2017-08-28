@@ -5,8 +5,8 @@ from collections import (
 from configman.dotdict import DotDict
 from working_structures import (
     URLStatsCounter,
-    URLs,
-    QueryURLDatabase
+    URLStatusMappingClass,
+    QueryURLMappingClass
 )
 
 
@@ -49,14 +49,14 @@ class TestURLs(TestCase):
     def test_instantiation(self):
         config = DotDict()
         config.url_stats_class = URLStatsCounter
-        urls = URLs(config)
+        urls = URLStatusMappingClass(config)
         self.assertTrue(urls.config is config)
         self.assertTrue(isinstance(urls.urls, Mapping))
 
     def test_add(self):
         config = DotDict()
         config.url_stats_class = URLStatsCounter
-        urls = URLs(config)
+        urls = URLStatusMappingClass(config)
         urls.add('fred')
 
         self.assertTrue('fred' in urls)
@@ -70,7 +70,7 @@ class TestURLs(TestCase):
     def test_touch(self):
         config = DotDict()
         config.url_stats_class = URLStatsCounter
-        urls = URLs(config)
+        urls = URLStatusMappingClass(config)
         urls.touch('fred')
 
         self.assertTrue('fred' in urls)
@@ -87,13 +87,13 @@ class TestURLs(TestCase):
         self.assertEqual(urls['fred'].count, 1)
 
 
-class TestQueryURLDatabase(TestCase):
+class TestQueryURLMappingClass(TestCase):
 
     def test_instantiation(self):
         config = DotDict()
         config.url_stats_class = URLStatsCounter
-        config.url_class = URLs
-        q_u_db = QueryURLDatabase(config)
+        config.url_mapping_class = URLStatusMappingClass
+        q_u_db = QueryURLMappingClass(config)
 
         self.assertTrue(q_u_db.config is config)
         self.assertTrue(isinstance(q_u_db.queries_and_urls, Mapping))
@@ -101,8 +101,8 @@ class TestQueryURLDatabase(TestCase):
     def test_add(self):
         config = DotDict()
         config.url_stats_class = URLStatsCounter
-        config.url_class = URLs
-        q_u_db = QueryURLDatabase(config)
+        config.url_mapping_class = URLStatusMappingClass
+        q_u_db = QueryURLMappingClass(config)
         q_u_db.add(('a_query', 'a_url'))
 
         self.assertTrue('a_query' in q_u_db)
@@ -116,8 +116,8 @@ class TestQueryURLDatabase(TestCase):
     def test_iter_records(self):
         config = DotDict()
         config.url_stats_class = URLStatsCounter
-        config.url_class = URLs
-        q_u_db = QueryURLDatabase(config)
+        config.url_mapping_class = URLStatusMappingClass
+        q_u_db = QueryURLMappingClass(config)
         q_u_pairs = [
             ('q1', 'u1'),
             ('q1', 'u1'),
@@ -147,8 +147,8 @@ class TestQueryURLDatabase(TestCase):
     def test_add_url_star_to_all_entries(self):
         config = DotDict()
         config.url_stats_class = URLStatsCounter
-        config.url_class = URLs
-        q_u_db = QueryURLDatabase(config)
+        config.url_mapping_class = URLStatusMappingClass
+        q_u_db = QueryURLMappingClass(config)
         q_u_pairs = [
             ('q1', 'u1'),
             ('q1', 'u1'),
