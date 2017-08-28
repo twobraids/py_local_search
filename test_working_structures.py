@@ -6,7 +6,8 @@ from configman.dotdict import DotDict
 from working_structures import (
     URLStatsCounter,
     URLStatusMappingClass,
-    QueryURLMappingClass
+    QueryURLMappingClass,
+    createHeadList
 )
 
 
@@ -168,4 +169,48 @@ class TestQueryURLMappingClass(TestCase):
         self.assertEqual(q_u_db['q2']['*'].count, 0)
         self.assertEqual(q_u_db['q3']['*'].count, 0)
         self.assertEqual(q_u_db['q4']['*'].count, 0)
+
+
+class TestCreateHeadList(TestCase):
+
+    def _create_optin_db(self, config):
+        q_u_db = QueryURLMappingClass(config)
+        q_u_pairs = [
+            ('q1', 'u1', 10),
+            ('q2', 'u1', 10),
+            ('q2', 'u2', 20),
+            ('q3', 'u3', 30),
+            ('q4', 'u4', 99),
+            ('q4', 'u5', 99),
+        ]
+        for q, u, c in q_u_pairs:
+            for i in range(c):
+                q_u_db.add((q, u))
+        return q_u_db
+
+
+
+    def testCreation(self):
+        config = DotDict()
+        config.headlist_base = QueryURLMappingClass
+        config.url_stats_class = URLStatsCounter
+        config.url_mapping_class = URLStatusMappingClass
+        config.epsilon = 4.0
+        config.delta = 0.000001
+        config.m_o = 10
+
+        optin_db = self._create_optin_db(config)
+
+        head_list = createHeadList(config, optin_db)
+
+        self.assertEqual(len(head_list), 2)
+        self.assertEqual(len(list(head_list.iter_records())), 3)
+        self.assertTrue('*' in head_list)
+        self.assertTrue('q4' in head_list)
+        self.assertTrue('q1' not in head_list)
+        self.assertTrue('q2' not in head_list)
+        self.assertTrue('q3' not in head_list)
+        self.assertTrue('u4' in head_list['q4'])
+        self.assertTrue('u5' in head_list['q4'])
+
 

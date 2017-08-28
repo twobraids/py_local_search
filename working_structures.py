@@ -74,6 +74,9 @@ class URLStatusMappingClass(MutableMapping, RequiredConfig):
     def __len__(self):
         return len(self.urls)
 
+    def __contains__(self, key):
+        return key in self.urls
+
 
 class QueryURLMappingClass(MutableMapping, RequiredConfig):
     """a mapping of queries to URL mappings"""
@@ -123,9 +126,12 @@ class QueryURLMappingClass(MutableMapping, RequiredConfig):
     def __len__(self):
         return len(self.queries_and_urls)
 
+    def __contains__(self, key):
+        return key in self.queries_and_urls
+
     def iter_records(self):
-        for a_query, url_mapping in self.items:
-            for a_url in url_mapping.keys:
+        for a_query, url_mapping in self.items():
+            for a_url in url_mapping.keys():
                 yield a_query, a_url
 
     # domain actions
@@ -170,7 +176,7 @@ from numpy.random import (
 def createHeadList(config, optin_database):
     class HeadList(config.headlist_base):
         def __init__(self, config, optin_database):
-            super(config.headlist_base, self).__init__(config)
+            super(HeadList, self).__init__(config)
             self.optin_database = optin_database
             self.epsilon = config.epsilon
             self.delta = config.delta
@@ -178,11 +184,11 @@ def createHeadList(config, optin_database):
 
             b_s = 2 * self.m_o / self.epsilon
             # from Figure 3, CreateHeadList, line 7
-            sigma = b_s * (ln(exp(self.epsilon/2) + self.m_o - 1) - ln(self.delta))
+            sigma = b_s * (ln(exp(self.epsilon/2.0) + self.m_o - 1.0) - ln(self.delta))
             assert sigma >= 1
-            for query, url in optin_database:
+            for query, url in optin_database.iter_records():
                 y = laplace(b_s)  # TODO: understand and select correct parameter
-                if optin_database[query][url].count > sigma:
+                if optin_database[query][url].count + y > sigma:
                     self.add((query, url))
             self.add(('*', '*'))
 
