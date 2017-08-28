@@ -142,8 +142,16 @@ class QueryURLMappingClass(MutableMapping, RequiredConfig):
 
 
 required_config = Namespace()
-required_config.add_option(
-    name="headlist_base",
+required_config.namespace('opt_in_db')
+required_config.opt_in_db.add_option(
+    name="optin_db_class",
+    default=QueryURLMappingClass,
+    from_string_converter=class_converter,
+    doc="dependency injection of a class to serve as the base class for HeadList"
+)
+required_config.namespace('head_list_db')
+required_config.head_list_db.add_option(
+    name="headlist_base_class",
     default=QueryURLMappingClass,
     from_string_converter=class_converter,
     doc="dependency injection of a class to serve as the base class for HeadList"
@@ -174,7 +182,7 @@ from numpy.random import (
 
 
 def createHeadList(config, optin_database):
-    class HeadList(config.headlist_base):
+    class HeadList(config.headlist_base_class):
         def __init__(self, config, optin_database):
             super(HeadList, self).__init__(config)
             self.optin_database = optin_database

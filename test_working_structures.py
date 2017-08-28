@@ -2,7 +2,10 @@ from unittest import TestCase
 from collections import (
     Mapping
 )
-from configman.dotdict import DotDict
+from configman.dotdict import (
+    DotDict,
+    DotDictWithAcquisition
+)
 from working_structures import (
     URLStatsCounter,
     URLStatusMappingClass,
@@ -191,17 +194,25 @@ class TestCreateHeadList(TestCase):
 
 
     def testCreation(self):
-        config = DotDict()
-        config.headlist_base = QueryURLMappingClass
-        config.url_stats_class = URLStatsCounter
-        config.url_mapping_class = URLStatusMappingClass
+        config = DotDictWithAcquisition()
+
+        config.opt_in_db = DotDictWithAcquisition()
+        config.opt_in_db.headlist_base_class = QueryURLMappingClass
+        config.opt_in_db.url_stats_class = URLStatsCounter
+        config.opt_in_db.url_mapping_class = URLStatusMappingClass
+
+        config.head_list_db = DotDictWithAcquisition()
+        config.head_list_db.headlist_base_class = QueryURLMappingClass
+        config.head_list_db.url_stats_class = URLStatsCounter
+        config.head_list_db.url_mapping_class = URLStatusMappingClass
+
         config.epsilon = 4.0
         config.delta = 0.000001
         config.m_o = 10
 
-        optin_db = self._create_optin_db(config)
+        optin_db = self._create_optin_db(config.opt_in_db)
 
-        head_list = createHeadList(config, optin_db)
+        head_list = createHeadList(config.head_list_db, optin_db)
 
         self.assertEqual(len(head_list), 2)
         self.assertEqual(len(list(head_list.iter_records())), 3)
