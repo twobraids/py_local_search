@@ -31,20 +31,26 @@ class URLStatsCounter(RequiredConfig):
 class URLStatsCounterWithProbability(URLStatsCounter):
     def __init__(self, config):
         super(URLStatsCounterWithProbability, self).__init__(config)
-        self.p = 0;
-        self.o = 0;
+        self.rho = 0;
+        self.sigma = 0;
 
     def subsume(self, other_URLStatsCounter):
         super(URLStatsCounterWithProbability, self).subsume(other_URLStatsCounter)
-        self.p += other_URLStatsCounter.p
-        #self.o =  # TODO: what here?
+        self.rho += other_URLStatsCounter.rho
+        # self.sigma   # take no action, will be calculated else where
 
-    def calculate_probabily_relative_to(self, query, url, other_query_url_mapping):
+    def calculate_probability_relative_to(self, query, url, other_query_url_mapping):
         y = laplace(b_s)  # TODO: understand and select correct parameter
-        p = other_query_url_mapping[query][url].p = (
+        self.rho = (
             (other_query_url_mapping[query][url].count * y) / other_query_url_mapping.count
         )
 
+    def caluculate_sigma_relative_to(self, b_t, query, url, other_query_url_mapping):
+        self.sigma = (
+            (self.rho * (1 - self.rho)) / (other_query_url_mapping.count - 1)
+            +
+            (b_t * b_t) / (other_query_url_mapping.count * (other_query_url_mapping.count - 1))
+        )
 
 class URLStatusMappingClass(MutableMapping, RequiredConfig):
     """A mapping of URLs to URL stats classes"""
@@ -154,20 +160,64 @@ class QueryURLMappingClass(MutableMapping, RequiredConfig):
 
 
 class HeadList(QueryURLMappingClass):
+    required_config = Namespace()
+    required_config.add_option(
+        "m",
+        default=1000,
+        doc="maximum size of the final headlist",
+    )
     def __init__(self, config):
         super(HeadList, self).__init__(config)
         self.probability_sorted_index = SortedDictOfLists()
 
+    def create_headlist(self, optin_database_s):
+        b_s = 2.0 * self.config.m_o / self.config.epsilon
+        # from Figure 3, CreateHeadList, line 7
+        tau = b_s * (ln(exp(self.config.epsilon/2.0) + self.config.m_o - 1.0) - ln(self.config.delta))
+        assert tau >= 1
+        for query, url in optin_database_s.iter_records():
+            y = laplace(b_s)  # TODO: understand and select correct parameter
+            if optin_database_s[query][url].count + y > tau:
+                self.add((query, url))
+        self.add(('*', '*'))
+
     def calculate_probabilities_relative_to(self, other_query_url_mapping):
+        # Figure 4: lines 9 - 12
         b_t = 2.0 * config.m_o / config.epsilon
         for query in self.keys():
+            if query == '*':
+                continue
             for url in self[query].keys():
                 self[query][url].calculate_probability_relative_to(query, url, other_query_url_mapping)
-                self[query].probability += self[query][url].p
+                self[query].probability += self[query][url].rho
                 # the original algorthim in Figure 4 calculated o_2 (sigma) at this point.  However,
                 # in that algorithm most of those values will be thrown away without being used.
                 # We'll delay calucalting them until we know which records we're keeping.
-            self.probability_sorted_index[self[query].probability].append(query)
+                self.probability_sorted_index[self[query].probability].append(query)
+
+    def subsume_entries_beyond_max_size(self):
+        # Figure 4: line 14
+        to_be_deleted_list = []
+        if '*' not in self:
+            self['*'].touch('*')
+        for i, (probability, query) in enumerate(self.probability_sorted_index.items()):
+            if i > self.config.m:
+                for url in self[query].keys():
+                    self['*']['*'].subsume(self[query][url])
+                    # we need to remove the <q, u> pair but cannot do so while the collection is
+                    # in iteration.  We keep a list of <q, u> pairs to remove and delete them after
+                    # iteration is complete
+                    to_be_deleted_list.append((query, url))
+        for query, url in to_be_deleted_list:
+            del self[query][url]
+            if not len(self[query]):
+                del self[query]
+
+    def calculate_sigma_relative_to(self, other_query_url_mapping):
+        # Figure 4: line 15 & 13
+        b_t = 2.0 * config.m_o / config.epsilon
+        for query, url in self.iter_records():
+            self[query][url].calculate_sigma_relative_to(b_t, query, url, other_query_url_mapping)
 
 
 required_config = Namespace()
@@ -177,15 +227,15 @@ required_config.opt_in_db.add_option(
     name="optin_db_class",
     default=QueryURLMappingClass,
     from_string_converter=class_converter,
-    doc="dependency injection of a class to serve as the base class for HeadList"
+    doc="dependency injection of a class to serve as non-headlist <q, u> databases"
 )
 
 required_config.namespace('head_list_db')
 required_config.head_list_db.add_option(
-    name="headlist_base_class",
-    default=QueryURLMappingClass,
+    name="headlist_class",
+    default=HeadList,
     from_string_converter=class_converter,
-    doc="dependency injection of a class to serve as the base class for HeadList"
+    doc="dependency injection of a class to serve as the HeadList"
 )
 
 required_config.add_option(
@@ -220,17 +270,8 @@ def create_preliminary_headlist(config, optin_database_s):
         config -
         optin_database_s -
     """
-    preliminary_head_list = config.head_list_db.headlist_base_class(config.head_list_db)
-
-    b_s = 2.0 * config.m_o / config.epsilon
-    # from Figure 3, CreateHeadList, line 7
-    tau = b_s * (ln(exp(config.epsilon/2.0) + config.m_o - 1.0) - ln(config.delta))
-    assert tau >= 1
-    for query, url in optin_database_s.iter_records():
-        y = laplace(b_s)  # TODO: understand and select correct parameter
-        if optin_database_s[query][url].count + y > tau:
-            preliminary_head_list.add((query, url))
-    preliminary_head_list.add(('*', '*'))
+    preliminary_head_list = config.head_list_db.headlist_class(config.head_list_db)
+    preliminary_head_list.create_headlist(optin_database_s)
 
     return preliminary_head_list
 
@@ -245,6 +286,13 @@ def estimate_optin_probabilities(config, preliminary_head_list, optin_database_t
     """
     optin_database_t.subsume_those_not_present_in(preliminary_head_list)
     preliminary_head_list.calculate_probabilities_relative_to(optin_database_t)
+    preliminary_head_list.subsume_entries_beyond_max_size()
+    preliminary_head_list.caluclate_sigma()
+
+    return preliminary_head_list
+
+
+
 
 
 

@@ -202,17 +202,23 @@ class TestQueryURLMappingClass(TestCase):
         self.assertTrue('u9' not in test_q_u_db['q4'])
 
 
-class TestCreateHeadList(TestCase):
+class TestHeadList(TestCase):
 
     def _create_optin_db(self, config):
         q_u_db = QueryURLMappingClass(config)
         q_u_pairs = [
-            ('q1', 'u1', 10),
-            ('q2', 'u1', 10),
-            ('q2', 'u2', 20),
-            ('q3', 'u3', 30),
-            ('q4', 'u4', 99),
-            ('q4', 'u5', 99),
+            ('q1', 'q1u1', 10),
+            ('q2', 'q2u1', 10),
+            ('q2', 'q2u2', 20),
+            ('q3', 'q3u1', 30),
+            ('q4', 'q4u1', 99),
+            ('q4', 'q4u2', 99),
+            ('q5', 'q5u1', 10),
+            ('q5', 'q5u2', 20),
+            ('q6', 'q6u1', 99),
+            ('q6', 'q6u2', 10),
+            ('q7', 'q7u1', 99),
+            ('q7', 'q7u2', 99),
         ]
         for q, u, c in q_u_pairs:
             for i in range(c):
@@ -225,31 +231,39 @@ class TestCreateHeadList(TestCase):
         config = DotDictWithAcquisition()
 
         config.opt_in_db = DotDictWithAcquisition()
-        config.opt_in_db.headlist_base_class = QueryURLMappingClass
+        config.opt_in_db.headlist_class = QueryURLMappingClass
         config.opt_in_db.url_stats_class = URLStatsCounter
         config.opt_in_db.url_mapping_class = URLStatusMappingClass
 
         config.head_list_db = DotDictWithAcquisition()
-        config.head_list_db.headlist_base_class = HeadList
+        config.head_list_db.headlist_class = HeadList
         config.head_list_db.url_stats_class = URLStatsCounterWithProbability
         config.head_list_db.url_mapping_class = URLStatusMappingClass
 
         config.epsilon = 4.0
         config.delta = 0.000001
         config.m_o = 10
+        config.m = 5
 
         optin_db = self._create_optin_db(config.opt_in_db)
 
         head_list = create_preliminary_headlist(config.head_list_db, optin_db)
 
-        self.assertEqual(len(head_list), 2)
-        self.assertEqual(len(list(head_list.iter_records())), 3)
+        self.assertEqual(len(head_list), 4)
+        self.assertEqual(len(list(head_list.iter_records())), 6)
         self.assertTrue('*' in head_list)
         self.assertTrue('q4' in head_list)
         self.assertTrue('q1' not in head_list)
         self.assertTrue('q2' not in head_list)
         self.assertTrue('q3' not in head_list)
-        self.assertTrue('u4' in head_list['q4'])
-        self.assertTrue('u5' in head_list['q4'])
+        self.assertTrue('q5' not in head_list)
+        self.assertTrue('q6' in head_list)
+        self.assertTrue('q7' in head_list)
+        self.assertTrue('q4u1' in head_list['q4'])
+        self.assertTrue('q4u2' in head_list['q4'])
+        self.assertTrue('q6u1' in head_list['q6'])
+        self.assertTrue('q6u2' not in head_list['q6'])
+        self.assertTrue('q7u1' in head_list['q7'])
+        self.assertTrue('q7u2' in head_list['q7'])
 
 
