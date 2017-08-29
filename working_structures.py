@@ -2,8 +2,8 @@ from collections import (
     defaultdict,
     MutableMapping
 )
-from sortedcontainers import (
-    SortedDict
+from sorted_dict_of_lists import (
+    SortedDictOfLists
 )
 
 from functools import partial
@@ -59,6 +59,7 @@ class URLStatusMappingClass(MutableMapping, RequiredConfig):
     def __init__(self, config):
         self.config = config
         self.urls = defaultdict(partial(self.config.url_stats_class, self.config))
+        self.probability = 0
 
     def touch(self, url):
         """add a url without incrementing the count - this is used to add the star url *"""
@@ -105,7 +106,6 @@ class QueryURLMappingClass(MutableMapping, RequiredConfig):
         # the configuration in during instantiation
         self.queries_and_urls = defaultdict(partial(self.config.url_mapping_class, self.config))
         self.count = 0
-        self.probability = 0
 
     def add(self, q_u_tuple):
         self.queries_and_urls[q_u_tuple[0]].add(q_u_tuple[1])
@@ -127,24 +127,6 @@ class QueryURLMappingClass(MutableMapping, RequiredConfig):
             del self[query][url]
             if not len(self[query]):
                 del self[query]
-
-class HeadList(QueryURLMappingClass):
-    def __init__(self, config):
-        super(HeadList, self).__init__(config)
-        self.probability_sorted_index =
-
-    def calculate_probabilities_relative_to(self, other_query_url_mapping):
-        b_t = 2.0 * config.m_o / config.epsilon
-        for query, url in self.iter_records():
-            self[query][url].calculate_probability_relative_to(query, url, other_query_url_mapping)
-            self.probability += self[query][url].p
-            # the original algorthim in Figure 4 calculated o_2 (sigma) at this point.  However,
-            # in that algorithm most of those values will be thrown away without being used.
-            # We'll delay calucalting them until we know which records we're keeping.
-
-
-
-
 
     def __getitem__(self, query):
         return self.queries_and_urls[query]
@@ -170,6 +152,22 @@ class HeadList(QueryURLMappingClass):
             for a_url in url_mapping.keys():
                 yield a_query, a_url
 
+
+class HeadList(QueryURLMappingClass):
+    def __init__(self, config):
+        super(HeadList, self).__init__(config)
+        self.probability_sorted_index = SortedDictOfLists()
+
+    def calculate_probabilities_relative_to(self, other_query_url_mapping):
+        b_t = 2.0 * config.m_o / config.epsilon
+        for query in self.keys():
+            for url in self[query].keys():
+                self[query][url].calculate_probability_relative_to(query, url, other_query_url_mapping)
+                self[query].probability += self[query][url].p
+                # the original algorthim in Figure 4 calculated o_2 (sigma) at this point.  However,
+                # in that algorithm most of those values will be thrown away without being used.
+                # We'll delay calucalting them until we know which records we're keeping.
+            self.probability_sorted_index[self[query].probability].append(query)
 
 
 required_config = Namespace()

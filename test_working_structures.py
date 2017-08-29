@@ -11,6 +11,7 @@ from working_structures import (
     URLStatsCounterWithProbability,
     URLStatusMappingClass,
     QueryURLMappingClass,
+    HeadList,
     create_preliminary_headlist,
     estimate_optin_probabilities
 )
@@ -229,7 +230,7 @@ class TestCreateHeadList(TestCase):
         config.opt_in_db.url_mapping_class = URLStatusMappingClass
 
         config.head_list_db = DotDictWithAcquisition()
-        config.head_list_db.headlist_base_class = QueryURLMappingClass
+        config.head_list_db.headlist_base_class = HeadList
         config.head_list_db.url_stats_class = URLStatsCounterWithProbability
         config.head_list_db.url_mapping_class = URLStatusMappingClass
 
