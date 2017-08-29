@@ -11,7 +11,7 @@ from working_structures import (
     URLStatsCounterWithProbability,
     URLStatusMappingClass,
     QueryURLMappingClass,
-    create_headList,
+    create_preliminary_headlist,
     estimate_optin_probabilities
 )
 
@@ -194,7 +194,7 @@ class TestQueryURLMappingClass(TestCase):
         for q_u in additional_q_u_pairs:
             test_q_u_db.add(q_u)
 
-        test_q_u_db.subsume_those_not_present(reference_q_u_db)
+        test_q_u_db.subsume_those_not_present_in(reference_q_u_db)
 
         self.assertTrue('*' in test_q_u_db)
         self.assertEqual(test_q_u_db['*']['*'].count, 8)
@@ -239,7 +239,7 @@ class TestCreateHeadList(TestCase):
 
         optin_db = self._create_optin_db(config.opt_in_db)
 
-        head_list = create_headList(config.head_list_db, optin_db)
+        head_list = create_preliminary_headlist(config.head_list_db, optin_db)
 
         self.assertEqual(len(head_list), 2)
         self.assertEqual(len(list(head_list.iter_records())), 3)

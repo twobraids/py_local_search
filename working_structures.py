@@ -2,6 +2,9 @@ from collections import (
     defaultdict,
     MutableMapping
 )
+from sortedcontainers import (
+    SortedDict
+)
 
 from functools import partial
 
@@ -35,6 +38,12 @@ class URLStatsCounterWithProbability(URLStatsCounter):
         super(URLStatsCounterWithProbability, self).subsume(other_URLStatsCounter)
         self.p += other_URLStatsCounter.p
         #self.o =  # TODO: what here?
+
+    def calculate_probabily_relative_to(self, query, url, other_query_url_mapping):
+        y = laplace(b_s)  # TODO: understand and select correct parameter
+        p = other_query_url_mapping[query][url].p = (
+            (other_query_url_mapping[query][url].count * y) / other_query_url_mapping.count
+        )
 
 
 class URLStatusMappingClass(MutableMapping, RequiredConfig):
@@ -78,15 +87,6 @@ class URLStatusMappingClass(MutableMapping, RequiredConfig):
         return key in self.urls
 
 
-class QueryProbabilityWithURLStatusMappingClass(URLStatusMappingClass):
-    def __init__(self, config):
-        super(QueryProbabilityWithURLStatusMappingClass, self).__init__(config)
-        self.p = 0
-
-
-
-
-
 class QueryURLMappingClass(MutableMapping, RequiredConfig):
     """a mapping of queries to URL mappings"""
     required_config = Namespace()
@@ -105,24 +105,45 @@ class QueryURLMappingClass(MutableMapping, RequiredConfig):
         # the configuration in during instantiation
         self.queries_and_urls = defaultdict(partial(self.config.url_mapping_class, self.config))
         self.count = 0
+        self.probability = 0
 
     def add(self, q_u_tuple):
         self.queries_and_urls[q_u_tuple[0]].add(q_u_tuple[1])
         self.count += 1
 
-    def subsume_those_not_present(self, other_query_url_mapping):
+    def subsume_those_not_present_in(self, other_query_url_mapping):
         to_be_deleted_list = []
         if '*' not in self.queries_and_urls:
             self['*'].touch('*')
-        for q, u in self.iter_records():
-            if q == '*': continue
-            if q not in other_query_url_mapping or u not in other_query_url_mapping[q]:
-                self['*']['*'].subsume(self[q][u])
-                to_be_deleted_list.append((q, u))
-        for q, u in to_be_deleted_list:
-            del self[q][u]
-            if not len(self[q]):
-                del self[q]
+        for query, url in self.iter_records():
+            if query == '*': continue
+            if query not in other_query_url_mapping or url not in other_query_url_mapping[query]:
+                self['*']['*'].subsume(self[query][url])
+                # we need to remove the <q, u> pair but cannot do so while the collection is
+                # in iteration.  We keep a list of <q, u> pairs to remove and delete them after
+                # iteration is complete
+                to_be_deleted_list.append((query, url))
+        for query, url in to_be_deleted_list:
+            del self[query][url]
+            if not len(self[query]):
+                del self[query]
+
+class HeadList(QueryURLMappingClass):
+    def __init__(self, config):
+        super(HeadList, self).__init__(config)
+        self.probability_sorted_index =
+
+    def calculate_probabilities_relative_to(self, other_query_url_mapping):
+        b_t = 2.0 * config.m_o / config.epsilon
+        for query, url in self.iter_records():
+            self[query][url].calculate_probability_relative_to(query, url, other_query_url_mapping)
+            self.probability += self[query][url].p
+            # the original algorthim in Figure 4 calculated o_2 (sigma) at this point.  However,
+            # in that algorithm most of those values will be thrown away without being used.
+            # We'll delay calucalting them until we know which records we're keeping.
+
+
+
 
 
     def __getitem__(self, query):
@@ -194,7 +215,13 @@ from numpy.random import (
 )
 
 
-def create_headList(config, optin_database_s):
+# CreateHeadList from Figure 3
+def create_preliminary_headlist(config, optin_database_s):
+    """
+    Parameters:
+        config -
+        optin_database_s -
+    """
     preliminary_head_list = config.head_list_db.headlist_base_class(config.head_list_db)
 
     b_s = 2.0 * config.m_o / config.epsilon
@@ -210,8 +237,16 @@ def create_headList(config, optin_database_s):
     return preliminary_head_list
 
 
+# EstimateOptinProbabilities from Figure 4
 def estimate_optin_probabilities(config, preliminary_head_list, optin_database_t):
-    optin_database_t.subsume_those_not_present(preliminary_head_list)
-    b_t = 2.0 * config.m_o / config.epsilon
+    """
+    Parameters:
+        config -
+        preliminary_head_list -
+        optin_database_t -
+    """
+    optin_database_t.subsume_those_not_present_in(preliminary_head_list)
+    preliminary_head_list.calculate_probabilities_relative_to(optin_database_t)
+
 
 
