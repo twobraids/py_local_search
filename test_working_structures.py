@@ -1,4 +1,8 @@
 from unittest import TestCase
+from mock import (
+    Mock,
+    MagicMock
+)
 from collections import (
     Mapping
 )
@@ -204,7 +208,7 @@ class TestQueryURLMappingClass(TestCase):
 
 class TestHeadList(TestCase):
 
-    def _create_optin_db(self, config):
+    def _create_optin_db_01(self, config):
         q_u_db = QueryURLMappingClass(config)
         q_u_pairs = [
             ('q1', 'q1u1', 10),
@@ -225,7 +229,26 @@ class TestHeadList(TestCase):
                 q_u_db.add((q, u))
         return q_u_db
 
-
+    def _create_optin_db_02(self, config):
+        q_u_db = QueryURLMappingClass(config)
+        q_u_pairs = [
+            ('q1', 'q1u1', 10),
+            ('q2', 'q2u1', 10),
+            ('q2', 'q2u2', 20),
+            ('q3', 'q3u1', 30),
+            ('q4', 'q4u1', 99),
+            ('q4', 'q4u2', 99),
+            ('q5', 'q5u1', 10),
+            ('q5', 'q5u2', 20),
+            ('q6', 'q6u1', 99),
+            ('q6', 'q6u2', 10),
+            ('q7', 'q7u1', 99),
+            ('q7', 'q7u2', 99),
+        ]
+        for q, u, c in q_u_pairs:
+            for i in range(c):
+                q_u_db.add((q, u))
+        return q_u_db
 
     def testCreation(self):
         config = DotDictWithAcquisition()
@@ -245,7 +268,7 @@ class TestHeadList(TestCase):
         config.m_o = 10
         config.m = 5
 
-        optin_db = self._create_optin_db(config.opt_in_db)
+        optin_db = self._create_optin_db_01(config.opt_in_db)
 
         head_list = create_preliminary_headlist(config.head_list_db, optin_db)
 
