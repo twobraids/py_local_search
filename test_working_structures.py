@@ -12,7 +12,6 @@ from configman.dotdict import (
 )
 from working_structures import (
     URLStatsCounter,
-    URLStatsCounterWithProbability,
     URLStatusMappingClass,
     QueryURLMappingClass,
     HeadList,
@@ -260,7 +259,7 @@ class TestHeadList(TestCase):
 
         config.head_list_db = DotDictWithAcquisition()
         config.head_list_db.headlist_class = HeadList
-        config.head_list_db.url_stats_class = URLStatsCounterWithProbability
+        config.head_list_db.url_stats_class = URLStatsCounter
         config.head_list_db.url_mapping_class = URLStatusMappingClass
 
         config.epsilon = 4.0

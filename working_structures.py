@@ -20,22 +20,14 @@ class URLStatsCounter(RequiredConfig):
     def __init__(self, config, count=0):
         self.config = config
         self.count = count
+        self.rho = 0;
+        self.sigma = 0;
 
     def increment_count(self, amount=1):
         self.count += amount
 
     def subsume(self, other_URLStatsCounter):
         self.count += other_URLStatsCounter.count
-
-
-class URLStatsCounterWithProbability(URLStatsCounter):
-    def __init__(self, config):
-        super(URLStatsCounterWithProbability, self).__init__(config)
-        self.rho = 0;
-        self.sigma = 0;
-
-    def subsume(self, other_URLStatsCounter):
-        super(URLStatsCounterWithProbability, self).subsume(other_URLStatsCounter)
         self.rho += other_URLStatsCounter.rho
         # self.sigma   # take no action, will be calculated else where
 
@@ -51,6 +43,7 @@ class URLStatsCounterWithProbability(URLStatsCounter):
             +
             (b_t * b_t) / (other_query_url_mapping.count * (other_query_url_mapping.count - 1))
         )
+
 
 class URLStatusMappingClass(MutableMapping, RequiredConfig):
     """A mapping of URLs to URL stats classes"""
