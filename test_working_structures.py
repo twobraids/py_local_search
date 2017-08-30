@@ -418,3 +418,42 @@ class TestHeadList(TestCase):
         for query in head_list.keys():
             sum += head_list[query].probability
         self.assertAlmostEquals(sum, 1.0)
+
+    @patch('working_structures.laplace',)
+    def test_calculate_sigma_relative_to(self, laplace_mock):
+
+        # we need control over the laplace method so that it returns a
+        # known value.  Having it mocked to always return 1 makes it easier
+        # to test the resultant values in the equations that use laplace
+        laplace_mock.return_value = 1
+
+        config = DotDictWithAcquisition()
+
+        config.opt_in_db = DotDictWithAcquisition()
+        config.opt_in_db.headlist_class = QueryURLMappingClass
+        config.opt_in_db.url_stats_class = URLStatsCounter
+        config.opt_in_db.url_mapping_class = URLStatusMappingClass
+
+        config.head_list_db = DotDictWithAcquisition()
+        config.head_list_db.headlist_class = HeadList
+        config.head_list_db.url_stats_class = URLStatsCounter
+        config.head_list_db.url_mapping_class = URLStatusMappingClass
+
+        config.epsilon = 4.0
+        config.delta = 0.000001
+        config.m_o = 10
+        config.m = 2
+
+        optin_db = self._create_optin_db_02(config.opt_in_db)
+        head_list = create_preliminary_headlist(config.head_list_db, optin_db)
+        optin_db.subsume_those_not_present_in(head_list)
+        head_list.calculate_probabilities_relative_to(optin_db)
+        head_list.subsume_entries_beyond_max_size()
+
+        head_list.calculate_sigma_relative_to(optin_db)
+
+        for query, url in head_list.iter_records():
+            url_stats = head_list[query][url]
+            # TODO: how do we determine that these values are correct?
+            print (query, url, url_stats.count, url_stats.rho, url_stats.sigma)
+

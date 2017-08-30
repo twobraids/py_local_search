@@ -37,11 +37,11 @@ class URLStatsCounter(RequiredConfig):
             (other_query_url_mapping[query][url].count * y) / other_query_url_mapping.count
         )
 
-    def caluculate_sigma_relative_to(self, b_t, query, url, other_query_url_mapping):
+    def calculate_sigma_relative_to(self, b_t, query, url, other_query_url_mapping):
         self.sigma = (
             (self.rho * (1 - self.rho)) / (other_query_url_mapping.count - 1)
             +
-            (b_t * b_t) / (other_query_url_mapping.count * (other_query_url_mapping.count - 1))
+            (2.0 * b_t * b_t) / (other_query_url_mapping.count * (other_query_url_mapping.count - 1))
         )
 
 
@@ -216,7 +216,7 @@ class HeadList(QueryURLMappingClass):
 
     def calculate_sigma_relative_to(self, other_query_url_mapping):
         # Figure 4: line 15 & 13
-        b_t = 2.0 * config.m_o / config.epsilon
+        b_t = 2.0 * self.config.m_o / self.config.epsilon
         for query, url in self.iter_records():
             self[query][url].calculate_sigma_relative_to(b_t, query, url, other_query_url_mapping)
 
@@ -288,7 +288,7 @@ def estimate_optin_probabilities(config, preliminary_head_list, optin_database_t
     optin_database_t.subsume_those_not_present_in(preliminary_head_list)
     preliminary_head_list.calculate_probabilities_relative_to(optin_database_t)
     preliminary_head_list.subsume_entries_beyond_max_size()
-    preliminary_head_list.caluclate_sigma()
+    preliminary_head_list.calculate_sigma_relative_to(optin_database_t)
 
     return preliminary_head_list
 
