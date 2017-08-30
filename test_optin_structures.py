@@ -10,7 +10,7 @@ from configman.dotdict import (
     DotDict,
     DotDictWithAcquisition
 )
-from working_structures import (
+from optin_structures import (
     URLStatsCounter,
     URLStatusMappingClass,
     QueryURLMappingClass,
@@ -31,7 +31,6 @@ class TestURLStatsCounter(TestCase):
         new_stats_counter = URLStatsCounter(config, 16)
         self.assertEqual(new_stats_counter.count, 16)
 
-
     def test_increment_count(self):
         config = {}
         new_stats_counter = URLStatsCounter(config)
@@ -50,8 +49,6 @@ class TestURLStatsCounter(TestCase):
 
         self.assertEqual(stats_counter_1.count, 18)
         self.assertEqual(stats_counter_2.count, 1)
-
-
 
 
 class TestURLs(TestCase):
@@ -296,7 +293,7 @@ class TestHeadList(TestCase):
         self.assertTrue('q7u1' in head_list['q7'])
         self.assertTrue('q7u2' in head_list['q7'])
 
-    @patch('working_structures.laplace',)
+    @patch('optin_structures.laplace',)
     def test_calculate_probabilities_relative_to(self, laplace_mock):
 
         # we need control over the laplace method so that it returns a
@@ -347,7 +344,7 @@ class TestHeadList(TestCase):
                 self.assertEqual(url_stats.rho, 0.1)
 
 
-    @patch('working_structures.laplace',)
+    @patch('optin_structures.laplace',)
     def test_subsume_entries_beyond_max_size(self, laplace_mock):
         # we need control over the laplace method so that it returns a
         # known value.  Having it mocked to always return 1 makes it easier
@@ -419,7 +416,7 @@ class TestHeadList(TestCase):
             sum += head_list[query].probability
         self.assertAlmostEquals(sum, 1.0)
 
-    @patch('working_structures.laplace',)
+    @patch('optin_structures.laplace',)
     def test_calculate_sigma_relative_to(self, laplace_mock):
 
         # we need control over the laplace method so that it returns a
