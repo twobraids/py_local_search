@@ -20,8 +20,8 @@ class URLStatsCounter(RequiredConfig):
     def __init__(self, config, count=0):
         self.config = config
         self.count = count
-        self.rho = 0;
-        self.sigma = 0;
+        self.rho = 0
+        self.sigma = 0
 
     def increment_count(self, amount=1):
         self.count += amount
@@ -31,8 +31,8 @@ class URLStatsCounter(RequiredConfig):
         self.rho += other_URLStatsCounter.rho
         # self.sigma   # take no action, will be calculated else where
 
-    def calculate_probability_relative_to(self, query, url, other_query_url_mapping):
-        y = laplace(b_s)  # TODO: understand and select correct parameter
+    def calculate_probability_relative_to(self, b, query, url, other_query_url_mapping):
+        y = laplace(b)  # TODO: understand and select correct parameter
         self.rho = (
             (other_query_url_mapping[query][url].count * y) / other_query_url_mapping.count
         )
@@ -63,6 +63,13 @@ class URLStatusMappingClass(MutableMapping, RequiredConfig):
     def touch(self, url):
         """add a url without incrementing the count - this is used to add the star url *"""
         self.urls[url]
+
+    def subsume(self, url, url_stats):
+        self[url].subsume(url_stats)
+        self.probability += url_stats.rho
+
+    def update_probability(self, url_stats):
+        self.probability += url_stats.rho
 
     def add(self, url):
         self.urls[url].increment_count()
@@ -115,7 +122,8 @@ class QueryURLMappingClass(MutableMapping, RequiredConfig):
         if '*' not in self.queries_and_urls:
             self['*'].touch('*')
         for query, url in self.iter_records():
-            if query == '*': continue
+            if query == '*':
+                continue
             if query not in other_query_url_mapping or url not in other_query_url_mapping[query]:
                 self['*']['*'].subsume(self[query][url])
                 # we need to remove the <q, u> pair but cannot do so while the collection is
@@ -172,20 +180,20 @@ class HeadList(QueryURLMappingClass):
             y = laplace(b_s)  # TODO: understand and select correct parameter
             if optin_database_s[query][url].count + y > tau:
                 self.add((query, url))
-        self.add(('*', '*'))
+        self['*'].touch('*') # add <*, *> with a count of 0
 
     def calculate_probabilities_relative_to(self, other_query_url_mapping):
         # Figure 4: lines 9 - 12
-        b_t = 2.0 * config.m_o / config.epsilon
+        b_t = 2.0 * self.config.m_o / self.config.epsilon
         for query in self.keys():
-            if query == '*':
-                continue
             for url in self[query].keys():
-                self[query][url].calculate_probability_relative_to(query, url, other_query_url_mapping)
-                self[query].probability += self[query][url].rho
+                self[query][url].calculate_probability_relative_to(b_t, query, url, other_query_url_mapping)
+                self[query].update_probability(self[query][url])
                 # the original algorthim in Figure 4 calculated o_2 (sigma) at this point.  However,
                 # in that algorithm most of those values will be thrown away without being used.
-                # We'll delay calucalting them until we know which records we're keeping.
+                # We'll delay calculating them until we know which records we're keeping.
+            if query != '*':
+                # we don't need to index the <*, *> case
                 self.probability_sorted_index[self[query].probability].append(query)
 
     def subsume_entries_beyond_max_size(self):
@@ -193,10 +201,10 @@ class HeadList(QueryURLMappingClass):
         to_be_deleted_list = []
         if '*' not in self:
             self['*'].touch('*')
-        for i, (probability, query) in enumerate(self.probability_sorted_index.items()):
-            if i > self.config.m:
+        for i, (probability, query) in enumerate(self.probability_sorted_index.iter_records()):
+            if i >= self.config.m:
                 for url in self[query].keys():
-                    self['*']['*'].subsume(self[query][url])
+                    self['*'].subsume('*', self[query][url])
                     # we need to remove the <q, u> pair but cannot do so while the collection is
                     # in iteration.  We keep a list of <q, u> pairs to remove and delete them after
                     # iteration is complete
