@@ -23,13 +23,30 @@ from configman import (
     class_converter,
 )
 
+# The Blender algorithm represents its major data structures with nested mappings of mappings
+# even though they're referred to as vectors or tables.  In the original C# code, these were
+# implemented as basic Dictionaries mapping strings to strings or strings to scalars.
+# Operations on these data structures are not attached to the data structures as instance
+# methods, but as external functions.
+
+# In this implementation, I've taken a more traditional object oriented approach in defining
+# classes to represent the different levels the mappings.  Rather than using separate
+# functions for operations,  I've used instance methods to associate function to data.
+# I believe this gives a more flexible design where implementation details are tied more
+# tightly to the actual implementation.  This leads to being able to create alternative
+# implementations that facilitate scaling.  This design allows the data to be re-implemented
+# in, for example, a relational database.
 
 class URLStatsCounter(RequiredConfig):
+    """Lowest level of the nested mappings. This is the data associated with a URL.
+    This data structure will likely be modified to include page title and excerpt
+    at sometime in the future.
+    """
     def __init__(self, config, count=0):
-        self.config = config
-        self.count = count
-        self.rho = 0
-        self.sigma = 0
+        self.config = config  # constants and configuration
+        self.count = count  # number of repeats of this URL
+        self.rho = 0  # the computed probability of this URL
+        self.sigma = 0  # the variance of this URL
 
     def increment_count(self, amount=1):
         self.count += amount
@@ -54,7 +71,9 @@ class URLStatsCounter(RequiredConfig):
 
 
 class URLStatusMappingClass(MutableMapping, RequiredConfig):
-    """A mapping of URLs to URL stats classes"""
+    """A mapping of URLs to URL stats classes.  The keys are URLs as strings and the values
+    are instances of the class representing the URL data and stats.
+    """
     required_config = Namespace()
     required_config.add_option(
         name="url_stats_class",
@@ -103,7 +122,8 @@ class URLStatusMappingClass(MutableMapping, RequiredConfig):
 
 
 class QueryURLMappingClass(MutableMapping, RequiredConfig):
-    """a mapping of queries to URL mappings"""
+    """This is the top of the mappings of mappings. The keys are queries and the values are
+    instances of a mapping of URLs to URL statistics"""
     required_config = Namespace()
     required_config.add_option(
         name="url_mapping_class",
@@ -122,10 +142,13 @@ class QueryURLMappingClass(MutableMapping, RequiredConfig):
         self.count = 0
 
     def add(self, q_u_tuple):
+        """add a new <q, u> tuple to this collecton"""
         self.queries_and_urls[q_u_tuple[0]].add(q_u_tuple[1])
         self.count += 1
 
     def subsume_those_not_present_in(self, other_query_url_mapping):
+        """take all <q, u> records in this collection that are not in the other_query_url_mapping and
+        merge their statistics into ths collection's <*, *> entry"""
         to_be_deleted_list = []
         if '*' not in self.queries_and_urls:
             self['*'].touch('*')
@@ -143,6 +166,15 @@ class QueryURLMappingClass(MutableMapping, RequiredConfig):
             if not len(self[query]):
                 del self[query]
 
+    def iter_records(self):
+        """an alternative iterator that returns unique <q, u> pairs"""
+        for a_query, url_mapping in self.items():
+            for a_url in url_mapping.keys():
+                yield a_query, a_url
+
+
+    # this class implements the MuteableMapping Abstract Base Class.  These are the implementation of
+    # the required methods for that ABC.
     def __getitem__(self, query):
         return self.queries_and_urls[query]
 
@@ -162,24 +194,25 @@ class QueryURLMappingClass(MutableMapping, RequiredConfig):
     def __contains__(self, key):
         return key in self.queries_and_urls
 
-    def iter_records(self):
-        for a_query, url_mapping in self.items():
-            for a_url in url_mapping.keys():
-                yield a_query, a_url
-
 
 class HeadList(QueryURLMappingClass):
+    """This class add the Blender algorithmic parts to the highest level of Mapping of Mappings"""
     required_config = Namespace()
     required_config.add_option(
         "m",
         default=1000,
         doc="maximum size of the final headlist",
     )
+
     def __init__(self, config):
         super(HeadList, self).__init__(config)
+        # ultimately, this collection will have to be truncated to a smaller size where retained members
+        # will be those with the highest value of some statistic. Rather than sort at the end, this keeps
+        # an index based on the statistic.
         self.probability_sorted_index = SortedDictOfLists()
 
     def create_headlist(self, optin_database_s):
+        """this is the implementation of the Figure 3 CreateHeadList from the Blender paper"""
         b_s = 2.0 * self.config.m_o / self.config.epsilon
         # from Figure 3, CreateHeadList, line 7
         tau = b_s * (ln(exp(self.config.epsilon/2.0) + self.config.m_o - 1.0) - ln(self.config.delta))
@@ -191,6 +224,7 @@ class HeadList(QueryURLMappingClass):
         self['*'].touch('*') # add <*, *> with a count of 0
 
     def calculate_probabilities_relative_to(self, other_query_url_mapping):
+        """This is from the Blender paper, Figure 4"""
         # Figure 4: lines 9 - 12
         b_t = 2.0 * self.config.m_o / self.config.epsilon
         for query in self.keys():
@@ -205,6 +239,7 @@ class HeadList(QueryURLMappingClass):
                 self.probability_sorted_index[self[query].probability].append(query)
 
     def subsume_entries_beyond_max_size(self):
+        """This is part of the algorithm from the Blender paper, Figure 4"""
         # Figure 4: line 14
         to_be_deleted_list = []
         if '*' not in self:
@@ -223,11 +258,14 @@ class HeadList(QueryURLMappingClass):
                 del self[query]
 
     def calculate_variance_relative_to(self, other_query_url_mapping):
+        """This is part of the algorithm from the Blender paper, Figure 4"""
         # Figure 4: line 15 & 13
         b_t = 2.0 * self.config.m_o / self.config.epsilon
         for query, url in self.iter_records():
             self[query][url].calculate_variance_relative_to(b_t, query, url, other_query_url_mapping)
 
+
+# define the constants used for the Blender algorithm as well as the classes for dependency injection
 
 required_config = Namespace()
 
@@ -263,6 +301,8 @@ required_config.add_option(
     doc="maximum number of records per opt-in user",
 )
 
+
+# direct implementations of the Blender algorithms
 
 # CreateHeadList from Figure 3
 def create_preliminary_headlist(config, optin_database_s):
