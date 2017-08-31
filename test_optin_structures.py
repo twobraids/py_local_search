@@ -447,7 +447,7 @@ class TestHeadList(TestCase):
         head_list.calculate_probabilities_relative_to(optin_db)
         head_list.subsume_entries_beyond_max_size()
 
-        head_list.calculate_sigma_relative_to(optin_db)
+        head_list.calculate_variance_relative_to(optin_db)
 
         for query, url in head_list.iter_records():
             url_stats = head_list[query][url]

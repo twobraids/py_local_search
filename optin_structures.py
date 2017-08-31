@@ -8,6 +8,14 @@ from sorted_dict_of_lists import (
 
 from functools import partial
 
+from math import (
+    log as ln,
+    exp
+)
+from numpy.random import (
+    laplace
+)
+
 from configman import (
     configuration,
     Namespace,
@@ -37,7 +45,7 @@ class URLStatsCounter(RequiredConfig):
             (other_query_url_mapping[query][url].count * y) / other_query_url_mapping.count
         )
 
-    def calculate_sigma_relative_to(self, b_t, query, url, other_query_url_mapping):
+    def calculate_variance_relative_to(self, b_t, query, url, other_query_url_mapping):
         self.sigma = (
             (self.rho * (1 - self.rho)) / (other_query_url_mapping.count - 1)
             +
@@ -214,11 +222,11 @@ class HeadList(QueryURLMappingClass):
             if not len(self[query]):
                 del self[query]
 
-    def calculate_sigma_relative_to(self, other_query_url_mapping):
+    def calculate_variance_relative_to(self, other_query_url_mapping):
         # Figure 4: line 15 & 13
         b_t = 2.0 * self.config.m_o / self.config.epsilon
         for query, url in self.iter_records():
-            self[query][url].calculate_sigma_relative_to(b_t, query, url, other_query_url_mapping)
+            self[query][url].calculate_variance_relative_to(b_t, query, url, other_query_url_mapping)
 
 
 required_config = Namespace()
@@ -255,14 +263,6 @@ required_config.add_option(
     doc="maximum number of records per opt-in user",
 )
 
-from math import (
-    log as ln,
-    exp
-)
-from numpy.random import (
-    laplace
-)
-
 
 # CreateHeadList from Figure 3
 def create_preliminary_headlist(config, optin_database_s):
@@ -288,7 +288,7 @@ def estimate_optin_probabilities(config, preliminary_head_list, optin_database_t
     optin_database_t.subsume_those_not_present_in(preliminary_head_list)
     preliminary_head_list.calculate_probabilities_relative_to(optin_database_t)
     preliminary_head_list.subsume_entries_beyond_max_size()
-    preliminary_head_list.calculate_sigma_relative_to(optin_database_t)
+    preliminary_head_list.calculate_variance_relative_to(optin_database_t)
 
     return preliminary_head_list
 
