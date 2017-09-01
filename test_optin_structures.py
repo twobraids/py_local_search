@@ -15,6 +15,8 @@ from optin_structures import (
     URLStatusMappingClass,
     QueryURLMappingClass,
     HeadList,
+)
+from blender import (
     create_preliminary_headlist,
     estimate_optin_probabilities
 )
