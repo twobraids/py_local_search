@@ -1,5 +1,3 @@
-
-
 from configman import (
     configuration,
     Namespace,
@@ -76,4 +74,7 @@ def estimate_optin_probabilities(config, preliminary_head_list, optin_database_t
     return preliminary_head_list
 
 
+# EstimateClientProbabilities
+def estimate_client_probabilities(config, client_database):
+    pass
 
