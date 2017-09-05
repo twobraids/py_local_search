@@ -86,3 +86,10 @@ class HeadList(QueryURLMappingClass):
         b_t = 2.0 * self.config.m_o / self.config.epsilon
         for query, url in self.iter_records():
             self[query][url].calculate_variance_relative_to(b_t, query, url, other_query_url_mapping)
+
+    def export_for_distribution(self):
+        for query in self.keys():
+            pass
+
+
+

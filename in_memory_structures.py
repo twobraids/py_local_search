@@ -29,7 +29,7 @@ from configman import (
     class_converter,
 )
 
-class URLStatsCounter(RequiredConfig):
+class URLCounter(RequiredConfig):
     """Lowest level of the nested mappings. This is the data associated with a URL.
     This data structure will likely be modified to include page title and excerpt
     at sometime in the future.
@@ -37,14 +37,22 @@ class URLStatsCounter(RequiredConfig):
     def __init__(self, config, count=0):
         self.config = config  # constants and configuration
         self.count = count  # number of repeats of this URL
-        self.rho = 0  # the computed probability of this URL
-        self.sigma = 0  # the variance of this URL
 
     def increment_count(self, amount=1):
         self.count += amount
 
     def subsume(self, other_URLStatsCounter):
         self.count += other_URLStatsCounter.count
+
+
+class URLStats(URLCounter):
+    def __init__(self, config, count=0):
+        super(URLStats, self).__init__(config, count)
+        self.rho = 0  # the computed probability of this URL
+        self.sigma = 0  # the variance of this URL
+
+    def subsume(self, other_URLStatsCounter):
+        super(URLStats, self).subsume(other_URLStatsCounter)
         self.rho += other_URLStatsCounter.rho
         # self.sigma   # take no action, will be calculated else where
 
@@ -62,7 +70,7 @@ class URLStatsCounter(RequiredConfig):
         )
 
 
-class URLStatusMappingClass(MutableMapping, RequiredConfig):
+class URLStatsMappingClass(MutableMapping, RequiredConfig):
     """A mapping of URLs to URL stats classes.  The keys are URLs as strings and the values
     are instances of the class representing the URL data and stats.
     """

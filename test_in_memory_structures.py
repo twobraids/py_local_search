@@ -11,8 +11,8 @@ from configman.dotdict import (
 
 
 from in_memory_structures import (
-    URLStatsCounter,
-    URLStatusMappingClass,
+    URLStats,
+    URLStatsMappingClass,
     QueryURLMappingClass,
 )
 
@@ -21,26 +21,26 @@ class TestURLStatsCounter(TestCase):
 
     def test_instantiation(self):
         config = {}
-        new_stats_counter = URLStatsCounter(config)
+        new_stats_counter = URLStats(config)
         self.assertTrue(new_stats_counter.config is config)
         self.assertEqual(new_stats_counter.count, 0)
 
-        new_stats_counter = URLStatsCounter(config, 16)
+        new_stats_counter = URLStats(config, 16)
         self.assertEqual(new_stats_counter.count, 16)
 
     def test_increment_count(self):
         config = {}
-        new_stats_counter = URLStatsCounter(config)
+        new_stats_counter = URLStats(config)
         self.assertEqual(new_stats_counter.count, 0)
         new_stats_counter.increment_count()
         self.assertEqual(new_stats_counter.count, 1)
 
     def test_subsume(self):
         config = {}
-        stats_counter_1 = URLStatsCounter(config)
+        stats_counter_1 = URLStats(config)
         stats_counter_1.count = 17
 
-        stats_counter_2 = URLStatsCounter(config)
+        stats_counter_2 = URLStats(config)
         stats_counter_2.increment_count()
         stats_counter_1.subsume(stats_counter_2)
 
@@ -52,15 +52,15 @@ class TestURLs(TestCase):
 
     def test_instantiation(self):
         config = DotDict()
-        config.url_stats_class = URLStatsCounter
-        urls = URLStatusMappingClass(config)
+        config.url_stats_class = URLStats
+        urls = URLStatsMappingClass(config)
         self.assertTrue(urls.config is config)
         self.assertTrue(isinstance(urls.urls, Mapping))
 
     def test_add(self):
         config = DotDict()
-        config.url_stats_class = URLStatsCounter
-        urls = URLStatusMappingClass(config)
+        config.url_stats_class = URLStats
+        urls = URLStatsMappingClass(config)
         urls.add('fred')
 
         self.assertTrue('fred' in urls)
@@ -73,8 +73,8 @@ class TestURLs(TestCase):
 
     def test_touch(self):
         config = DotDict()
-        config.url_stats_class = URLStatsCounter
-        urls = URLStatusMappingClass(config)
+        config.url_stats_class = URLStats
+        urls = URLStatsMappingClass(config)
         urls.touch('fred')
 
         self.assertTrue('fred' in urls)
@@ -95,8 +95,8 @@ class TestQueryURLMappingClass(TestCase):
 
     def test_instantiation(self):
         config = DotDict()
-        config.url_stats_class = URLStatsCounter
-        config.url_mapping_class = URLStatusMappingClass
+        config.url_stats_class = URLStats
+        config.url_mapping_class = URLStatsMappingClass
         q_u_db = QueryURLMappingClass(config)
 
         self.assertTrue(q_u_db.config is config)
@@ -106,8 +106,8 @@ class TestQueryURLMappingClass(TestCase):
 
     def test_add(self):
         config = DotDict()
-        config.url_stats_class = URLStatsCounter
-        config.url_mapping_class = URLStatusMappingClass
+        config.url_stats_class = URLStats
+        config.url_mapping_class = URLStatsMappingClass
         q_u_db = QueryURLMappingClass(config)
         q_u_db.add(('a_query', 'a_url'))
 
@@ -124,8 +124,8 @@ class TestQueryURLMappingClass(TestCase):
 
     def test_iter_records(self):
         config = DotDict()
-        config.url_stats_class = URLStatsCounter
-        config.url_mapping_class = URLStatusMappingClass
+        config.url_stats_class = URLStats
+        config.url_mapping_class = URLStatsMappingClass
         q_u_db = QueryURLMappingClass(config)
         q_u_pairs = [
             ('q1', 'u1'),
@@ -160,8 +160,8 @@ class TestQueryURLMappingClass(TestCase):
 
     def test_subsume_those_not_present(self):
         config = DotDict()
-        config.url_stats_class = URLStatsCounter
-        config.url_mapping_class = URLStatusMappingClass
+        config.url_stats_class = URLStats
+        config.url_mapping_class = URLStatsMappingClass
         reference_q_u_db = QueryURLMappingClass(config)
         q_u_pairs = [
             ('q1', 'u1'),

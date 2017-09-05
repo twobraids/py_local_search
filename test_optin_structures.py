@@ -11,8 +11,8 @@ from optin_structures import (
     HeadList
 )
 from in_memory_structures import (
-    URLStatsCounter,
-    URLStatusMappingClass,
+    URLStats,
+    URLStatsMappingClass,
     QueryURLMappingClass
 )
 from blender import (
@@ -78,13 +78,13 @@ class TestHeadList(TestCase):
 
         config.opt_in_db = DotDictWithAcquisition()
         config.opt_in_db.headlist_class = QueryURLMappingClass
-        config.opt_in_db.url_stats_class = URLStatsCounter
-        config.opt_in_db.url_mapping_class = URLStatusMappingClass
+        config.opt_in_db.url_stats_class = URLStats
+        config.opt_in_db.url_mapping_class = URLStatsMappingClass
 
         config.head_list_db = DotDictWithAcquisition()
         config.head_list_db.headlist_class = HeadList
-        config.head_list_db.url_stats_class = URLStatsCounter
-        config.head_list_db.url_mapping_class = URLStatusMappingClass
+        config.head_list_db.url_stats_class = URLStats
+        config.head_list_db.url_mapping_class = URLStatsMappingClass
 
         config.epsilon = 4.0
         config.delta = 0.000001
@@ -124,13 +124,13 @@ class TestHeadList(TestCase):
 
         config.opt_in_db = DotDictWithAcquisition()
         config.opt_in_db.headlist_class = QueryURLMappingClass
-        config.opt_in_db.url_stats_class = URLStatsCounter
-        config.opt_in_db.url_mapping_class = URLStatusMappingClass
+        config.opt_in_db.url_stats_class = URLStats
+        config.opt_in_db.url_mapping_class = URLStatsMappingClass
 
         config.head_list_db = DotDictWithAcquisition()
         config.head_list_db.headlist_class = HeadList
-        config.head_list_db.url_stats_class = URLStatsCounter
-        config.head_list_db.url_mapping_class = URLStatusMappingClass
+        config.head_list_db.url_stats_class = URLStats
+        config.head_list_db.url_mapping_class = URLStatsMappingClass
 
         config.epsilon = 4.0
         config.delta = 0.000001
@@ -174,13 +174,13 @@ class TestHeadList(TestCase):
 
         config.opt_in_db = DotDictWithAcquisition()
         config.opt_in_db.headlist_class = QueryURLMappingClass
-        config.opt_in_db.url_stats_class = URLStatsCounter
-        config.opt_in_db.url_mapping_class = URLStatusMappingClass
+        config.opt_in_db.url_stats_class = URLStats
+        config.opt_in_db.url_mapping_class = URLStatsMappingClass
 
         config.head_list_db = DotDictWithAcquisition()
         config.head_list_db.headlist_class = HeadList
-        config.head_list_db.url_stats_class = URLStatsCounter
-        config.head_list_db.url_mapping_class = URLStatusMappingClass
+        config.head_list_db.url_stats_class = URLStats
+        config.head_list_db.url_mapping_class = URLStatsMappingClass
 
         config.epsilon = 4.0
         config.delta = 0.000001
@@ -247,13 +247,13 @@ class TestHeadList(TestCase):
 
         config.opt_in_db = DotDictWithAcquisition()
         config.opt_in_db.headlist_class = QueryURLMappingClass
-        config.opt_in_db.url_stats_class = URLStatsCounter
-        config.opt_in_db.url_mapping_class = URLStatusMappingClass
+        config.opt_in_db.url_stats_class = URLStats
+        config.opt_in_db.url_mapping_class = URLStatsMappingClass
 
         config.head_list_db = DotDictWithAcquisition()
         config.head_list_db.headlist_class = HeadList
-        config.head_list_db.url_stats_class = URLStatsCounter
-        config.head_list_db.url_mapping_class = URLStatusMappingClass
+        config.head_list_db.url_stats_class = URLStats
+        config.head_list_db.url_mapping_class = URLStatsMappingClass
 
         config.epsilon = 4.0
         config.delta = 0.000001
