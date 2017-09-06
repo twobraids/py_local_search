@@ -48,23 +48,23 @@ class URLCounter(RequiredConfig):
 class URLStats(URLCounter):
     def __init__(self, config, count=0):
         super(URLStats, self).__init__(config, count)
-        self.rho = 0  # the computed probability of this URL
-        self.sigma = 0  # the variance of this URL
+        self.probability = 0  # the computed probability of this URL
+        self.variance = 0  # the variance of this URL
 
     def subsume(self, other_URLStatsCounter):
         super(URLStats, self).subsume(other_URLStatsCounter)
-        self.rho += other_URLStatsCounter.rho
+        self.probability += other_URLStatsCounter.probability
         # self.sigma   # take no action, will be calculated else where
 
     def calculate_probability_relative_to(self, b, query, url, other_query_url_mapping):
         y = laplace(b)  # TODO: understand and select correct parameter
-        self.rho = (
+        self.probability = (
             (other_query_url_mapping[query][url].count * y) / other_query_url_mapping.count
         )
 
     def calculate_variance_relative_to(self, b_t, query, url, other_query_url_mapping):
-        self.sigma = (
-            (self.rho * (1 - self.rho)) / (other_query_url_mapping.count - 1)
+        self.variance = (
+            (self.probability * (1 - self.probability)) / (other_query_url_mapping.count - 1)
             +
             (2.0 * b_t * b_t) / (other_query_url_mapping.count * (other_query_url_mapping.count - 1))
         )
@@ -93,10 +93,10 @@ class URLStatsMappingClass(MutableMapping, RequiredConfig):
 
     def subsume(self, url, url_stats):
         self[url].subsume(url_stats)
-        self.probability += url_stats.rho
+        self.probability += url_stats.probability
 
     def update_probability(self, url_stats):
-        self.probability += url_stats.rho
+        self.probability += url_stats.probability
 
     def add(self, url):
         self.urls[url].increment_count()

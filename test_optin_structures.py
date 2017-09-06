@@ -158,9 +158,9 @@ class TestHeadList(TestCase):
         for query, url in optin_db.iter_records():
             url_stats = head_list[query][url]
             if query == '*':
-                self.assertEqual(url_stats.rho, 0.5)
+                self.assertEqual(url_stats.probability, 0.5)
             else:
-                self.assertEqual(url_stats.rho, 0.1)
+                self.assertEqual(url_stats.probability, 0.1)
 
 
     @patch('in_memory_structures.laplace',)
@@ -271,5 +271,5 @@ class TestHeadList(TestCase):
         for query, url in head_list.iter_records():
             url_stats = head_list[query][url]
             # TODO: how do we determine that these values are correct?
-            print (query, url, url_stats.count, url_stats.rho, url_stats.sigma)
+            print (query, url, url_stats.count, url_stats.probability, url_stats.variance)
 
