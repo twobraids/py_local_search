@@ -85,7 +85,9 @@ class URLStatsMappingClass(MutableMapping, RequiredConfig):
     def __init__(self, config):
         self.config = config
         self.urls = defaultdict(partial(self.config.url_stats_class, self.config))
+        self.count = 0
         self.probability = 0
+        self.variance = 0
 
     def touch(self, url):
         """add a url without incrementing the count - this is used to add the star url *"""
@@ -96,18 +98,27 @@ class URLStatsMappingClass(MutableMapping, RequiredConfig):
         self.probability += url_stats.probability
 
     def update_probability(self, url_stats):
+        # used by HeadList object
         self.probability += url_stats.probability
 
     def add(self, url):
         self.urls[url].increment_count()
+        self.count += 1
 
     def __getitem__(self, query):
         return self.urls[query]
 
     def __setitem__(self, url, item):
+        try:
+            self.count -= self.urls[url].count
+        except KeyError:
+            pass
         self.urls[url] = item
+        self.count += item.count
+
 
     def __delitem__(self, url):
+        self.count -= self.urls[url].count
         del self.urls[url]
 
     def __iter__(self):
@@ -127,7 +138,7 @@ class QueryURLMappingClass(MutableMapping, RequiredConfig):
     required_config = Namespace()
     required_config.add_option(
         name="url_mapping_class",
-        default="URLStatusMappingClass",
+        default="URLStatsMappingClass",
         from_string_converter=class_converter,
         doc="dependency injection of a class to represent a mapping of URLs to URL stats objects"
     )

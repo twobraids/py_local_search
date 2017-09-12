@@ -17,7 +17,8 @@ from in_memory_structures import (
 )
 
 
-class TestURLStatsCounter(TestCase):
+class TestURLStats(TestCase):
+    # also tests the base class URLStatsCounter
 
     def test_instantiation(self):
         config = {}
@@ -39,13 +40,16 @@ class TestURLStatsCounter(TestCase):
         config = {}
         stats_counter_1 = URLStats(config)
         stats_counter_1.count = 17
+        stats_counter_1.probability = 0.5
 
         stats_counter_2 = URLStats(config)
         stats_counter_2.increment_count()
+        stats_counter_2.probability = 0.25
         stats_counter_1.subsume(stats_counter_2)
 
         self.assertEqual(stats_counter_1.count, 18)
         self.assertEqual(stats_counter_2.count, 1)
+        self.assertEqual(stats_counter_1.probability, 0.75)
 
 
 class TestURLs(TestCase):

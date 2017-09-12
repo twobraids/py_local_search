@@ -229,7 +229,7 @@ class TestHeadList(TestCase):
         self.assertTrue('q7u2' in head_list['q7'])
 
         # ensure that the sum of all probabilities in the head_list
-        # is extremely close to 1.0
+        # is extremely close to 1.0  (summing floats is frequently imprecise)
         sum = 0.0
         for query in head_list.keys():
             sum += head_list[query].probability

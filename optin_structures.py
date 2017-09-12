@@ -54,8 +54,8 @@ class HeadList(QueryURLMappingClass):
             for url in self[query].keys():
                 self[query][url].calculate_probability_relative_to(b_t, query, url, other_query_url_mapping)
                 self[query].update_probability(self[query][url])
-                # the original algorthim in Figure 4 calculated o_2 (sigma) at this point.  However,
-                # in that algorithm most of those values will be thrown away without being used.
+                # the original algorthim in Figure 4 calculated o_2 (sigma/variance) at this point.
+                # However, in that algorithm most of those values will be thrown away without being used.
                 # We'll delay calculating them until we know which records we're keeping.
             if query != '*':
                 # we don't need to index the <*, *> case
@@ -66,7 +66,7 @@ class HeadList(QueryURLMappingClass):
         # Figure 4: line 14
         to_be_deleted_list = []
         if '*' not in self:
-            self['*'].touch('*')
+            self['*'].touch('*')  # create the entry with a count of zero
         for i, (probability, query) in enumerate(self.probability_sorted_index.iter_records()):
             if i >= self.config.m:
                 for url in self[query].keys():
@@ -87,9 +87,20 @@ class HeadList(QueryURLMappingClass):
         for query, url in self.iter_records():
             self[query][url].calculate_variance_relative_to(b_t, query, url, other_query_url_mapping)
 
-    def export_for_distribution(self):
+    def export_for_client_distribution(self):
+        # this ought to produce a json file without the probabilites and variance data
         for query in self.keys():
             pass
+
+    def save(self):
+        # the ought to create a json file with the probabilities and varance data
+        pass
+
+    def load(self):
+        # populate a HeadList from a json fil
+        pass
+
+
 
 
 
