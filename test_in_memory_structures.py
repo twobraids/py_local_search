@@ -11,59 +11,55 @@ from configman.dotdict import (
 
 
 from in_memory_structures import (
-    URLStats,
+    URLCounter,
     URLStatsMappingClass,
     QueryURLMappingClass,
 )
 
-
-class TestURLStats(TestCase):
-    # also tests the base class URLStatsCounter
+class TestURLCounter(TestCase):
 
     def test_instantiation(self):
         config = {}
-        new_stats_counter = URLStats(config)
+        new_stats_counter = URLCounter(config)
         self.assertTrue(new_stats_counter.config is config)
         self.assertEqual(new_stats_counter.count, 0)
 
-        new_stats_counter = URLStats(config, 16)
+        new_stats_counter = URLCounter(config, 16)
         self.assertEqual(new_stats_counter.count, 16)
 
     def test_increment_count(self):
         config = {}
-        new_stats_counter = URLStats(config)
+        new_stats_counter = URLCounter(config)
         self.assertEqual(new_stats_counter.count, 0)
         new_stats_counter.increment_count()
         self.assertEqual(new_stats_counter.count, 1)
 
     def test_subsume(self):
         config = {}
-        stats_counter_1 = URLStats(config)
+        stats_counter_1 = URLCounter(config)
         stats_counter_1.count = 17
         stats_counter_1.probability = 0.5
 
-        stats_counter_2 = URLStats(config)
+        stats_counter_2 = URLCounter(config)
         stats_counter_2.increment_count()
-        stats_counter_2.probability = 0.25
         stats_counter_1.subsume(stats_counter_2)
 
         self.assertEqual(stats_counter_1.count, 18)
         self.assertEqual(stats_counter_2.count, 1)
-        self.assertEqual(stats_counter_1.probability, 0.75)
 
 
-class TestURLs(TestCase):
+class TestURLStats(TestCase):
 
     def test_instantiation(self):
         config = DotDict()
-        config.url_stats_class = URLStats
+        config.url_stats_class = URLCounter
         urls = URLStatsMappingClass(config)
         self.assertTrue(urls.config is config)
         self.assertTrue(isinstance(urls.urls, Mapping))
 
     def test_add(self):
         config = DotDict()
-        config.url_stats_class = URLStats
+        config.url_stats_class = URLCounter
         urls = URLStatsMappingClass(config)
         urls.add('fred')
 
@@ -77,7 +73,7 @@ class TestURLs(TestCase):
 
     def test_touch(self):
         config = DotDict()
-        config.url_stats_class = URLStats
+        config.url_stats_class = URLCounter
         urls = URLStatsMappingClass(config)
         urls.touch('fred')
 
@@ -99,7 +95,7 @@ class TestQueryURLMappingClass(TestCase):
 
     def test_instantiation(self):
         config = DotDict()
-        config.url_stats_class = URLStats
+        config.url_stats_class = URLCounter
         config.url_mapping_class = URLStatsMappingClass
         q_u_db = QueryURLMappingClass(config)
 
@@ -110,7 +106,7 @@ class TestQueryURLMappingClass(TestCase):
 
     def test_add(self):
         config = DotDict()
-        config.url_stats_class = URLStats
+        config.url_stats_class = URLCounter
         config.url_mapping_class = URLStatsMappingClass
         q_u_db = QueryURLMappingClass(config)
         q_u_db.add(('a_query', 'a_url'))
@@ -128,7 +124,7 @@ class TestQueryURLMappingClass(TestCase):
 
     def test_iter_records(self):
         config = DotDict()
-        config.url_stats_class = URLStats
+        config.url_stats_class = URLCounter
         config.url_mapping_class = URLStatsMappingClass
         q_u_db = QueryURLMappingClass(config)
         q_u_pairs = [
@@ -164,7 +160,7 @@ class TestQueryURLMappingClass(TestCase):
 
     def test_subsume_those_not_present(self):
         config = DotDict()
-        config.url_stats_class = URLStats
+        config.url_stats_class = URLCounter
         config.url_mapping_class = URLStatsMappingClass
         reference_q_u_db = QueryURLMappingClass(config)
         q_u_pairs = [

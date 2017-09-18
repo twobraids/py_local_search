@@ -2,6 +2,9 @@ from unittest import TestCase
 from mock import (
     patch
 )
+from collections import (
+    Mapping
+)
 from configman.dotdict import (
     DotDict,
     DotDictWithAcquisition
@@ -11,14 +14,76 @@ from optin_structures import (
     HeadList
 )
 from in_memory_structures import (
-    URLStats,
+    URLCounter,
     URLStatsMappingClass,
     QueryURLMappingClass
+)
+from optin_structures import (
+    URLStatsForOptin
 )
 from blender import (
     create_preliminary_headlist,
     estimate_optin_probabilities
 )
+
+
+class TestURLStatsForOptin(TestCase):
+
+    def test_instantiation(self):
+        config = DotDict()
+        config.url_stats_class = URLStatsForOptin
+        urls = URLStatsMappingClass(config)
+        self.assertTrue(urls.config is config)
+        self.assertTrue(isinstance(urls.urls, Mapping))
+
+    def test_add(self):
+        config = DotDict()
+        config.url_stats_class = URLStatsForOptin
+        urls = URLStatsMappingClass(config)
+        urls.add('fred')
+
+        self.assertTrue('fred' in urls)
+        self.assertEqual(urls['fred'].count, 1)
+
+        urls.add('fred')
+
+        self.assertTrue('fred' in urls)
+        self.assertEqual(urls['fred'].count, 2)
+
+    def test_touch(self):
+        config = DotDict()
+        config.url_stats_class = URLStatsForOptin
+        urls = URLStatsMappingClass(config)
+        urls.touch('fred')
+
+        self.assertTrue('fred' in urls)
+        self.assertEqual(urls['fred'].count, 0)
+
+        urls.touch('fred')
+
+        self.assertTrue('fred' in urls)
+        self.assertEqual(urls['fred'].count, 0)
+
+        urls.add('fred')
+
+        self.assertTrue('fred' in urls)
+        self.assertEqual(urls['fred'].count, 1)
+
+    def test_subsume(self):
+        config = {}
+        stats_counter_1 = URLStatsForOptin(config)
+        stats_counter_1.count = 17
+        stats_counter_1.probability = 0.5
+
+        stats_counter_2 = URLStatsForOptin(config)
+        stats_counter_2.increment_count()
+        stats_counter_2.probability = 0.25
+        stats_counter_1.subsume(stats_counter_2)
+
+        self.assertEqual(stats_counter_1.count, 18)
+        self.assertEqual(stats_counter_2.count, 1)
+        self.assertEqual(stats_counter_1.probability, 0.75)
+
 
 
 class TestHeadList(TestCase):
@@ -78,12 +143,12 @@ class TestHeadList(TestCase):
 
         config.opt_in_db = DotDictWithAcquisition()
         config.opt_in_db.headlist_class = QueryURLMappingClass
-        config.opt_in_db.url_stats_class = URLStats
+        config.opt_in_db.url_stats_class = URLStatsForOptin
         config.opt_in_db.url_mapping_class = URLStatsMappingClass
 
         config.head_list_db = DotDictWithAcquisition()
         config.head_list_db.headlist_class = HeadList
-        config.head_list_db.url_stats_class = URLStats
+        config.head_list_db.url_stats_class = URLStatsForOptin
         config.head_list_db.url_mapping_class = URLStatsMappingClass
 
         config.epsilon = 4.0
@@ -112,7 +177,7 @@ class TestHeadList(TestCase):
         self.assertTrue('q7u1' in head_list['q7'])
         self.assertTrue('q7u2' in head_list['q7'])
 
-    @patch('in_memory_structures.laplace',)
+    @patch('optin_structures.laplace',)
     def test_calculate_probabilities_relative_to(self, laplace_mock):
 
         # we need control over the laplace method so that it returns a
@@ -124,12 +189,12 @@ class TestHeadList(TestCase):
 
         config.opt_in_db = DotDictWithAcquisition()
         config.opt_in_db.headlist_class = QueryURLMappingClass
-        config.opt_in_db.url_stats_class = URLStats
+        config.opt_in_db.url_stats_class = URLStatsForOptin
         config.opt_in_db.url_mapping_class = URLStatsMappingClass
 
         config.head_list_db = DotDictWithAcquisition()
         config.head_list_db.headlist_class = HeadList
-        config.head_list_db.url_stats_class = URLStats
+        config.head_list_db.url_stats_class = URLStatsForOptin
         config.head_list_db.url_mapping_class = URLStatsMappingClass
 
         config.epsilon = 4.0
@@ -153,7 +218,7 @@ class TestHeadList(TestCase):
 
         #for query, url in head_list.iter_records():
             #url_stats = head_list[query][url]
-            #print (query, url, url_stats.count, url_stats.rho, url_stats.sigma)
+            #print (query, url, url_stats.count, url_stats.probability, url_stats.variance)
 
         for query, url in optin_db.iter_records():
             url_stats = head_list[query][url]
@@ -163,7 +228,7 @@ class TestHeadList(TestCase):
                 self.assertEqual(url_stats.probability, 0.1)
 
 
-    @patch('in_memory_structures.laplace',)
+    @patch('optin_structures.laplace',)
     def test_subsume_entries_beyond_max_size(self, laplace_mock):
         # we need control over the laplace method so that it returns a
         # known value.  Having it mocked to always return 1 makes it easier
@@ -174,12 +239,12 @@ class TestHeadList(TestCase):
 
         config.opt_in_db = DotDictWithAcquisition()
         config.opt_in_db.headlist_class = QueryURLMappingClass
-        config.opt_in_db.url_stats_class = URLStats
+        config.opt_in_db.url_stats_class = URLStatsForOptin
         config.opt_in_db.url_mapping_class = URLStatsMappingClass
 
         config.head_list_db = DotDictWithAcquisition()
         config.head_list_db.headlist_class = HeadList
-        config.head_list_db.url_stats_class = URLStats
+        config.head_list_db.url_stats_class = URLStatsForOptin
         config.head_list_db.url_mapping_class = URLStatsMappingClass
 
         config.epsilon = 4.0
@@ -247,12 +312,12 @@ class TestHeadList(TestCase):
 
         config.opt_in_db = DotDictWithAcquisition()
         config.opt_in_db.headlist_class = QueryURLMappingClass
-        config.opt_in_db.url_stats_class = URLStats
+        config.opt_in_db.url_stats_class = URLStatsForOptin
         config.opt_in_db.url_mapping_class = URLStatsMappingClass
 
         config.head_list_db = DotDictWithAcquisition()
         config.head_list_db.headlist_class = HeadList
-        config.head_list_db.url_stats_class = URLStats
+        config.head_list_db.url_stats_class = URLStatsForOptin
         config.head_list_db.url_mapping_class = URLStatsMappingClass
 
         config.epsilon = 4.0
