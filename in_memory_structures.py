@@ -114,7 +114,7 @@ class QueryURLMappingClass(MutableMapping, RequiredConfig):
     required_config = Namespace()
     required_config.add_option(
         name="url_mapping_class",
-        default="URLStatsMappingClass",
+        default="in_memory_structures.URLStatsMappingClass",
         from_string_converter=class_converter,
         doc="dependency injection of a class to represent a mapping of URLs to URL stats objects"
     )

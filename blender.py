@@ -1,5 +1,10 @@
+#!/usr/bin/env python3
+
 from configman import (
     configuration,
+    command_line,
+    ConfigFileFutureProxy as configuration_file,
+    environment,
     Namespace,
     RequiredConfig,
     class_converter,
@@ -56,6 +61,45 @@ required_config.add_option(
 )
 
 
+# setup default data structures
+# most of the major working data structures of this program are
+# multilevel mappings where each level is represented by a different
+# class.
+# for example, the "optin_db" is represented by the
+# "optin_structures.QueryURLMappingClass" which is keyed by the query.
+# optin_db['some query'] returns an instance of the next level of the
+# structure, an instance of "in_memory_structures.URLStatsMappingClass".
+# This is itself a mapping which is keyed by url.
+# optin_db['some query']['some/url'] returns an instance of a url
+# stats object, "in_memory_structures.URLStatsForOptin".  This final
+# lowest level object contains stats and methods for individual urls.
+#
+# There are several structures that follow this pattern, each selecting
+# different implementation classes based on the role that the structure
+# needs to play in the algorithm
+#
+# this section consolidates the declaration of the mapping structures into
+# one place.
+
+default_data_structures = {
+    "head_list_db": {  # used for the preliminary_head_list & head_list
+        "headlist_class": "optin_structures.HeadList",
+        "url_mapping_class": "in_memory_structures.URLStatsMappingClass",
+        "url_stats_class": "in_memory_structures.URLStatsForOptin"
+    },
+    "optin_db": {  # used for the optin_database_s & optin_database_t
+        "optin_db_class": "optin_structures.QueryURLMappingClass",
+        "url_mapping_class": "in_memory_structures.URLStatsMappingClass",
+        "url_stats_class": "in_memory_structures.URLStatsForOptin"
+    },
+    "client_db": {
+        "client_db_class": "client_structures.ClientQueryURLMappingClass",
+        "url_mapping_class": "in_memory_structures.URLStatsMappingClass",
+        "url_stats_class": "client_structures.URLStatsForClient"
+    }
+}
+
+
 # direct implementations of the Blender algorithms
 
 # CreateHeadList from Figure 3
@@ -77,10 +121,9 @@ def create_preliminary_headlist(config, optin_database_s):
 
 
 # EstimateOptinProbabilities from Figure 4
-def estimate_optin_probabilities(config, preliminary_head_list, optin_database_t):
+def estimate_optin_probabilities(preliminary_head_list, optin_database_t):
     """
     Parameters:
-        config -
         preliminary_head_list -
         optin_database_t -
     """
@@ -113,4 +156,73 @@ def estimate_client_probabilities(config, head_list, client_database):
     delta_prime_q = config.f_c * delta_prime
     delta_prime_u = delta_prime - delta_prime_q
 
+
+if __name__ == "__main__":
+    # this line handles getting configuration information from the command
+    # line or any configuration files that might exist.
+
+    # on the command line, typing --help will give an argparse-like listing
+    # of all the configuration options defined with the recursive hierarchy
+    # in the definition of "required_config"
+
+    # The program can also write configuration files in various formats with
+    # the command line argument --dump_config=file-name.type  where "type" is
+    # "ini" for nested ini files, "conf" for flat key value pairs, "json"
+    # for json compatible files, or "py" to write an initializing python module
+
+    # Configuration files can be read by specifying "--conf=somefile.type"
+
+    # Configuration can also be read from the working environment.  Since the
+    # standard Linux commandline environment disallows "." in environment
+    # variables, substitute the double underbar:
+    #    export client_db.client_db_class=some.module.class  # fails
+    #    export client_db__client_db_class=some.module.class  # works
+
+    config = configuration(
+        definition_source=required_config,
+        values_source_list=[
+            # setup a structure of overriding hierarchy for the
+            # sources of configuration information.
+            # each source will override values from sources lower
+            # in the list
+            command_line,
+            configuration_file,
+            environment,
+            default_data_structures
+        ]
+    )
+
+    # create & read optin_database_s
+    optin_database_s = config.opt_in_db.optin_db_class(
+        config.opt_in_db
+    )
+    # optin_database_s.load("loadlocation_s")
+
+    # create preliminary head list
+    preliminary_head_list = create_preliminary_headlist(
+        config,
+        optin_database_s
+    )
+
+    # create & read optin_database_t
+    optin_database_t = config.opt_in_db.optin_db_class(
+        config.opt_in_db
+    )
+    # optin_database_t.load("loadlocation_t")
+
+    head_list = estimate_optin_probabilities(
+        preliminary_head_list,
+        optin_database_t
+    )
+
+    # create and load client database
+    client_database = config.client_db.client_db_class(
+        config.client_db
+    )
+
+    head_list = estimate_client_probabilities(
+        config,
+        head_list,
+        client_database
+    )
 

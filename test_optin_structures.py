@@ -188,7 +188,7 @@ class TestHeadList(TestCase):
         config = DotDictWithAcquisition()
 
         config.opt_in_db = DotDictWithAcquisition()
-        config.opt_in_db.headlist_class = QueryURLMappingClass
+        config.opt_in_db.optin_db_class = QueryURLMappingClass
         config.opt_in_db.url_stats_class = URLStatsForOptin
         config.opt_in_db.url_mapping_class = URLStatsMappingClass
 
@@ -238,7 +238,7 @@ class TestHeadList(TestCase):
         config = DotDictWithAcquisition()
 
         config.opt_in_db = DotDictWithAcquisition()
-        config.opt_in_db.headlist_class = QueryURLMappingClass
+        config.opt_in_db.optin_db_class = QueryURLMappingClass
         config.opt_in_db.url_stats_class = URLStatsForOptin
         config.opt_in_db.url_mapping_class = URLStatsMappingClass
 
@@ -311,7 +311,7 @@ class TestHeadList(TestCase):
         config = DotDictWithAcquisition()
 
         config.opt_in_db = DotDictWithAcquisition()
-        config.opt_in_db.headlist_class = QueryURLMappingClass
+        config.opt_in_db.optin_db_class = QueryURLMappingClass
         config.opt_in_db.url_stats_class = URLStatsForOptin
         config.opt_in_db.url_mapping_class = URLStatsMappingClass
 
