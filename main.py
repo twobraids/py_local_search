@@ -10,7 +10,6 @@ from configman import (
     class_converter,
 )
 
-
 # define the constants used for the Blender algorithm as well as the classes for dependency injection
 
 required_config = Namespace()
@@ -18,7 +17,7 @@ required_config = Namespace()
 required_config.namespace('opt_in_db')
 required_config.opt_in_db.add_option(
     name="optin_db_class",
-    default="optin_structures.QueryURLMappingClass",
+    default="blender.in_memory_structures.QueryURLMappingClass",
     from_string_converter=class_converter,
     doc="dependency injection of a class to serve as non-headlist <q, u> databases"
 )
@@ -26,7 +25,7 @@ required_config.opt_in_db.add_option(
 required_config.namespace('head_list_db')
 required_config.head_list_db.add_option(
     name="headlist_class",
-    default="optin_structures.HeadList",
+    default="blender.optin_structures.HeadList",
     from_string_converter=class_converter,
     doc="dependency injection of a class to serve as the HeadList"
 )
@@ -71,7 +70,7 @@ required_config.add_option(
 # structure, an instance of "in_memory_structures.URLStatsMappingClass".
 # This is itself a mapping which is keyed by url.
 # optin_db['some query']['some/url'] returns an instance of a url
-# stats object, "in_memory_structures.URLStatsForOptin".  This final
+# stats object, "optin_structures.URLStatsForOptin".  This final
 # lowest level object contains stats and methods for individual urls.
 #
 # There are several structures that follow this pattern, each selecting
@@ -83,19 +82,19 @@ required_config.add_option(
 
 default_data_structures = {
     "head_list_db": {  # used for the preliminary_head_list & head_list
-        "headlist_class": "optin_structures.HeadList",
-        "url_mapping_class": "in_memory_structures.URLStatsMappingClass",
-        "url_stats_class": "in_memory_structures.URLStatsForOptin"
+        "headlist_class": "blender.optin_structures.HeadList",
+        "url_mapping_class": "blender.in_memory_structures.URLStatsMappingClass",
+        "url_stats_class": "blender.optin_structures.URLStatsForOptin"
     },
     "optin_db": {  # used for the optin_database_s & optin_database_t
-        "optin_db_class": "optin_structures.QueryURLMappingClass",
-        "url_mapping_class": "in_memory_structures.URLStatsMappingClass",
-        "url_stats_class": "in_memory_structures.URLStatsForOptin"
+        "optin_db_class": "blender.optin_structures.QueryURLMappingClass",
+        "url_mapping_class": "blender.in_memory_structures.URLStatsMappingClass",
+        "url_stats_class": "blender.optin_structures.URLStatsForOptin"
     },
     "client_db": {
-        "client_db_class": "client_structures.ClientQueryURLMappingClass",
-        "url_mapping_class": "in_memory_structures.URLStatsMappingClass",
-        "url_stats_class": "client_structures.URLStatsForClient"
+        "client_db_class": "blender.client_structures.ClientQueryURLMappingClass",
+        "url_mapping_class": "blender.in_memory_structures.URLStatsMappingClass",
+        "url_stats_class": "blender.client_structures.URLStatsForClient"
     }
 }
 

@@ -10,18 +10,16 @@ from configman.dotdict import (
     DotDictWithAcquisition
 )
 
-from optin_structures import (
-    HeadList
+from blender.optin_structures import (
+    HeadList,
+    URLStatsForOptin
 )
-from in_memory_structures import (
+from blender.in_memory_structures import (
     URLCounter,
     URLStatsMappingClass,
     QueryURLMappingClass
 )
-from optin_structures import (
-    URLStatsForOptin
-)
-from blender import (
+from blender.main import (
     create_preliminary_headlist,
     estimate_optin_probabilities
 )
@@ -177,7 +175,7 @@ class TestHeadList(TestCase):
         self.assertTrue('q7u1' in head_list['q7'])
         self.assertTrue('q7u2' in head_list['q7'])
 
-    @patch('optin_structures.laplace',)
+    @patch('blender.optin_structures.laplace',)
     def test_calculate_probabilities_relative_to(self, laplace_mock):
 
         # we need control over the laplace method so that it returns a
@@ -228,7 +226,7 @@ class TestHeadList(TestCase):
                 self.assertEqual(url_stats.probability, 0.1)
 
 
-    @patch('optin_structures.laplace',)
+    @patch('blender.optin_structures.laplace',)
     def test_subsume_entries_beyond_max_size(self, laplace_mock):
         # we need control over the laplace method so that it returns a
         # known value.  Having it mocked to always return 1 makes it easier
@@ -300,7 +298,7 @@ class TestHeadList(TestCase):
             sum += head_list[query].probability
         self.assertAlmostEquals(sum, 1.0)
 
-    @patch('in_memory_structures.laplace',)
+    @patch('blender.optin_structures.laplace',)
     def test_calculate_sigma_relative_to(self, laplace_mock):
 
         # we need control over the laplace method so that it returns a

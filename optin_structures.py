@@ -1,4 +1,4 @@
-from sorted_dict_of_lists import (
+from blender.sorted_dict_of_lists import (
     SortedDictOfLists
 )
 
@@ -14,7 +14,7 @@ from configman import (
     Namespace
 )
 
-from in_memory_structures import (
+from blender.in_memory_structures import (
     URLCounter,
     QueryURLMappingClass
 )

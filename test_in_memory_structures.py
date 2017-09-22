@@ -8,9 +8,7 @@ from configman.dotdict import (
     DotDict
 )
 
-
-
-from in_memory_structures import (
+from blender.in_memory_structures import (
     URLCounter,
     URLStatsMappingClass,
     QueryURLMappingClass,
@@ -197,5 +195,3 @@ class TestQueryURLMappingClass(TestCase):
         self.assertTrue('*' in test_q_u_db)
         self.assertEqual(test_q_u_db['*']['*'].count, 8)
         self.assertTrue('u9' not in test_q_u_db['q4'])
-
-

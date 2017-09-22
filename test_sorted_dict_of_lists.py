@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from sorted_dict_of_lists import (
+from blender.sorted_dict_of_lists import (
     SortedDictOfLists
 )
 
