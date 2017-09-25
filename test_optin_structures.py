@@ -200,6 +200,7 @@ class TestHeadList(TestCase):
         config.head_list_db.url_stats_class = URLStatsForOptin
         config.head_list_db.url_mapping_class = URLStatsMappingClass
         config.head_list_db.b_s = 5.0
+        config.head_list_db.b_t = 5.0
         config.head_list_db.tau = 83.06062179501248
 
         optin_db = self._create_optin_db_02(config.opt_in_db)
@@ -251,6 +252,7 @@ class TestHeadList(TestCase):
         config.head_list_db.url_stats_class = URLStatsForOptin
         config.head_list_db.url_mapping_class = URLStatsMappingClass
         config.head_list_db.b_s = 5.0
+        config.head_list_db.b_t = 5.0
         config.head_list_db.tau = 83.06062179501248
 
         optin_db = self._create_optin_db_02(config.opt_in_db)
@@ -326,6 +328,7 @@ class TestHeadList(TestCase):
         config.head_list_db.url_stats_class = URLStatsForOptin
         config.head_list_db.url_mapping_class = URLStatsMappingClass
         config.head_list_db.b_s = 5.0
+        config.head_list_db.b_t = 5.0
         config.head_list_db.tau = 83.06062179501248
 
         optin_db = self._create_optin_db_02(config.opt_in_db)

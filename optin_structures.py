@@ -54,16 +54,20 @@ class HeadList(QueryURLMappingClass):
         doc="maximum size of the final headlist",
     )
     required_config.add_aggregation(
-        "b_s",
+        "b_s",  # from Figure #3, line 6
         lambda config: 2.0 * self.config.m_o / self.config.epsilon
     )
     required_config.add_aggregation(
-        "tau",
+        "tau",  # from Figure #3, line 7
         lambda config: (
             (2.0 * self.config.m_o / self.config.epsilon)
             *
             (ln(exp(self.config.epsilon/2.0) + self.config.m_o - 1.0) - ln(self.config.delta))
         )
+    )
+    required_config.add_aggregation(
+        "b_t",  # from Figure #4, line 9 - notice same definition as "b_s"
+        lambda config: 2.0 * self.config.m_o / self.config.epsilon
     )
 
     def __init__(self, config):
@@ -86,11 +90,10 @@ class HeadList(QueryURLMappingClass):
 
     def calculate_probabilities_relative_to(self, other_query_url_mapping):
         """This is from the Blender paper, Figure 4"""
-        # Figure 4: lines 9 - 12
-        b_t = 2.0 * self.config.m_o / self.config.epsilon
+        # Figure 4: lines 10 - 12
         for query in self.keys():
             for url in self[query].keys():
-                self[query][url].calculate_probability_relative_to(b_t, query, url, other_query_url_mapping)
+                self[query][url].calculate_probability_relative_to(self.config.b_t, query, url, other_query_url_mapping)
                 self[query].update_probability(self[query][url])
                 # the original algorthim in Figure 4 calculated o_2 (sigma/variance) at this point.
                 # However, in that algorithm most of those values will be thrown away without being used.
