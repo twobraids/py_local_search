@@ -2,6 +2,7 @@ from sortedcontainers import (
     SortedDict,
 )
 
+
 class SortedDictOfLists(SortedDict):
 
     def __getitem__(self, key):

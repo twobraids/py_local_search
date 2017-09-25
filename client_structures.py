@@ -1,3 +1,7 @@
+from numpy.random import (
+    laplace
+)
+
 from in_memory_structures import (
     URLCounter,
 )
@@ -5,7 +9,7 @@ from in_memory_structures import (
 
 class URLStatsForClient(URLCounter):
     def __init__(self, config, count=0):
-        super(URLStatsForOptin, self).__init__(config, count)
+        super(URLStatsForClient, self).__init__(config, count)
         self.probability = 0  # the computed probability of this URL
         self.variance = 0  # the variance of this URL
 

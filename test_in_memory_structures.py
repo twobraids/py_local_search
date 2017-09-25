@@ -14,6 +14,7 @@ from blender.in_memory_structures import (
     QueryURLMappingClass,
 )
 
+
 class TestURLCounter(TestCase):
 
     def test_instantiation(self):
@@ -101,7 +102,6 @@ class TestQueryURLMappingClass(TestCase):
         self.assertTrue(isinstance(q_u_db.queries_and_urls, Mapping))
         self.assertEqual(q_u_db.count, 0)
 
-
     def test_add(self):
         config = DotDict()
         config.url_stats_class = URLCounter
@@ -118,7 +118,6 @@ class TestQueryURLMappingClass(TestCase):
         self.assertTrue('a_url' in q_u_db['a_query'])
         self.assertEqual(q_u_db['a_query']['a_url'].count, 2)
         self.assertEqual(q_u_db.count, 2)
-
 
     def test_iter_records(self):
         config = DotDict()
@@ -154,7 +153,6 @@ class TestQueryURLMappingClass(TestCase):
         self.assertEqual(q_u_db['q3']['u3'].count, 1)
         self.assertEqual(q_u_db['q4']['u4'].count, 2)
         self.assertEqual(q_u_db['q4']['u5'].count, 1)
-
 
     def test_subsume_those_not_present(self):
         config = DotDict()

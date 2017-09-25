@@ -18,16 +18,12 @@ from collections import (
     MutableMapping
 )
 from functools import partial
-from numpy.random import (
-    laplace
-)
-
 from configman import (
-    configuration,
     Namespace,
     RequiredConfig,
     class_converter,
 )
+
 
 class URLCounter(RequiredConfig):
     """Lowest level of the nested mappings. This is the data associated with a URL.
@@ -43,7 +39,6 @@ class URLCounter(RequiredConfig):
 
     def subsume(self, other_URLStatsCounter):
         self.count += other_URLStatsCounter.count
-
 
 
 class URLStatsMappingClass(MutableMapping, RequiredConfig):
@@ -92,7 +87,6 @@ class URLStatsMappingClass(MutableMapping, RequiredConfig):
         self.urls[url] = item
         self.count += item.count
 
-
     def __delitem__(self, url):
         self.count -= self.urls[url].count
         del self.urls[url]
@@ -118,6 +112,7 @@ class QueryURLMappingClass(MutableMapping, RequiredConfig):
         from_string_converter=class_converter,
         doc="dependency injection of a class to represent a mapping of URLs to URL stats objects"
     )
+
     def __init__(self, config):
         self.config = config
         # use dependency injection to create a dictionary keyed by query to values specified
@@ -159,7 +154,6 @@ class QueryURLMappingClass(MutableMapping, RequiredConfig):
             for a_url in url_mapping.keys():
                 yield a_query, a_url
 
-
     # this class implements the MuteableMapping Abstract Base Class.  These are the implementation of
     # the required methods for that ABC.
     def __getitem__(self, query):
@@ -180,5 +174,3 @@ class QueryURLMappingClass(MutableMapping, RequiredConfig):
 
     def __contains__(self, key):
         return key in self.queries_and_urls
-
-

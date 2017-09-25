@@ -15,7 +15,6 @@ from blender.optin_structures import (
     URLStatsForOptin
 )
 from blender.in_memory_structures import (
-    URLCounter,
     URLStatsMappingClass,
     QueryURLMappingClass
 )
@@ -81,7 +80,6 @@ class TestURLStatsForOptin(TestCase):
         self.assertEqual(stats_counter_1.count, 18)
         self.assertEqual(stats_counter_2.count, 1)
         self.assertEqual(stats_counter_1.probability, 0.75)
-
 
 
 class TestHeadList(TestCase):
@@ -225,7 +223,6 @@ class TestHeadList(TestCase):
             else:
                 self.assertEqual(url_stats.probability, 0.1)
 
-
     @patch('blender.optin_structures.laplace',)
     def test_subsume_entries_beyond_max_size(self, laplace_mock):
         # we need control over the laplace method so that it returns a
@@ -334,5 +331,4 @@ class TestHeadList(TestCase):
         for query, url in head_list.iter_records():
             url_stats = head_list[query][url]
             # TODO: how do we determine that these values are correct?
-            print (query, url, url_stats.count, url_stats.probability, url_stats.variance)
-
+            print(query, url, url_stats.count, url_stats.probability, url_stats.variance)

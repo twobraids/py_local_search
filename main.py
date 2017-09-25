@@ -6,7 +6,6 @@ from configman import (
     ConfigFileFutureProxy as configuration_file,
     environment,
     Namespace,
-    RequiredConfig,
     class_converter,
 )
 
@@ -59,12 +58,43 @@ required_config.add_option(
         "to reporting queries",
 )
 
+# the following are constants calculated in Figure 6 LocalAlg and then
+# referenced in EstimateClientProbabilities Figure 5. While they are
+# defined in functions, they really depend only on configuration and can
+# therefore be calculated at program initialization time.
+
+required_config.add_aggregation(
+    "epsilon_prime",  # Figure 6 LocalAlg line 2
+    lambda config: config.epsilon / config.m_c
+)
+required_config.add_aggregation(
+    "epsilon_prime_q",  # Figure 6 LocalAlg line 3
+    lambda config: config.f_c * config.epsilon / config.m_c
+)
+required_config.add_aggregation(
+    "epsilon_prime_u",  # Figure 6 LocalAlg line 3
+    lambda config: (config.epsilon / config.m_c) - (config.f_c * config.epsilon / config.m_c)
+)
+
+required_config.add_aggregation(
+    "delta_prime",  # Figure 6 LocalAlg line 2
+    lambda config: config.delta / config.m_c
+)
+required_config.add_aggregation(
+    "delta_prime_q",  # Figure 6 LocalAlg line 3
+    lambda config: config.f_c * config.delta / config.m_c
+)
+required_config.add_aggregation(
+    "delta_prime_u",  # Figure 6 LocalAlg line 3
+    lambda config: (config.delta / config.m_c) - (config.f_c * config.delta / config.m_c)
+)
+
 
 # setup default data structures
-# most of the major working data structures of this program are
+# Most of the major working data structures of this program are
 # multilevel mappings where each level is represented by a different
 # class.
-# for example, the "optin_db" is represented by the
+# For example, the "optin_db" is represented by the
 # "optin_structures.QueryURLMappingClass" which is keyed by the query.
 # optin_db['some query'] returns an instance of the next level of the
 # structure, an instance of "in_memory_structures.URLStatsMappingClass".
@@ -95,7 +125,7 @@ default_data_structures = {
         "client_db_class": "blender.client_structures.ClientQueryURLMappingClass",
         "url_mapping_class": "blender.in_memory_structures.URLStatsMappingClass",
         "url_stats_class": "blender.client_structures.URLStatsForClient"
-    }
+    },
 }
 
 
@@ -140,7 +170,6 @@ def estimate_optin_probabilities(preliminary_head_list, optin_database_t):
     # before EstimateClientProbabilities.  Since this method prepares the head_list
     # for the client, it is best that the star values are added here.
     preliminary_head_list.append_star_values()
-
 
     return preliminary_head_list
 
@@ -224,4 +253,3 @@ if __name__ == "__main__":
         head_list,
         client_database
     )
-

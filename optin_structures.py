@@ -71,7 +71,7 @@ class HeadList(QueryURLMappingClass):
             y = laplace(b_s)  # TODO: understand and select correct parameter
             if optin_database_s[query][url].count + y > tau:
                 self.add((query, url))
-        self['*'].touch('*') # add <*, *> with a count of 0
+        self['*'].touch('*')  # add <*, *> with a count of 0
 
     def calculate_probabilities_relative_to(self, other_query_url_mapping):
         """This is from the Blender paper, Figure 4"""
