@@ -3,7 +3,6 @@ from unittest import TestCase
 from collections import (
     Mapping
 )
-
 from configman.dotdict import (
     DotDict
 )

@@ -6,6 +6,7 @@ from numpy.random import (
 
 from in_memory_structures import (
     URLCounter,
+    QueryURLMappingClass,
 )
 
 
@@ -29,6 +30,21 @@ def local_alg(config, head_list, local_query_url_iter):
             # or duplicates.  Some code clearly allows duplicates.  the definiton of |D| is for unique or
             # with duplicates?
             a_query = choice(head_list.keys())
+
+class QueryUrlProbabilities(QueryURLMappingClass):
+    def __init__(self, config):
+        super(QueryUrlProbabilities, self).__init__(config)
+        self.probability = 0.0
+        self.variance = 0.0
+
+    def calculate_probabilities_relative_to(self, other_query_url_mapping):
+        fraction_of_this_query_in_other_mapping =
+        self.probability =
+
+
+
+
+
 
 class URLStatsForClient(URLCounter):
     def __init__(self, config, count=0):

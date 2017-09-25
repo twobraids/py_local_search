@@ -23,8 +23,8 @@ from blender.in_memory_structures import (
 class URLStatsForOptin(URLCounter):
     def __init__(self, config, count=0):
         super(URLStatsForOptin, self).__init__(config, count)
-        self.probability = 0  # the computed probability of this URL
-        self.variance = 0  # the variance of this URL
+        self.probability = 0.0  # the computed probability of this URL
+        self.variance = 0.0  # the variance of this URL
 
     def subsume(self, other_URLStatsCounter):
         super(URLStatsForOptin, self).subsume(other_URLStatsCounter)
@@ -39,9 +39,9 @@ class URLStatsForOptin(URLCounter):
 
     def calculate_variance_relative_to(self, b_t, query, url, other_query_url_mapping):
         self.variance = (
-            (self.probability * (1 - self.probability)) / (other_query_url_mapping.count - 1)
+            (self.probability * (1.0 - self.probability)) / (other_query_url_mapping.count - 1.0)
             +
-            (2.0 * b_t * b_t) / (other_query_url_mapping.count * (other_query_url_mapping.count - 1))
+            (2.0 * b_t * b_t) / (other_query_url_mapping.count * (other_query_url_mapping.count - 1.0))
         )
 
 
@@ -53,6 +53,18 @@ class HeadList(QueryURLMappingClass):
         default=1000,
         doc="maximum size of the final headlist",
     )
+    required_config.add_aggregation(
+        "b_s",
+        lambda config: 2.0 * self.config.m_o / self.config.epsilon
+    )
+    required_config.add_aggregation(
+        "tau",
+        lambda config: (
+            (2.0 * self.config.m_o / self.config.epsilon)
+            *
+            (ln(exp(self.config.epsilon/2.0) + self.config.m_o - 1.0) - ln(self.config.delta))
+        )
+    )
 
     def __init__(self, config):
         super(HeadList, self).__init__(config)
@@ -63,13 +75,12 @@ class HeadList(QueryURLMappingClass):
 
     def create_headlist(self, optin_database_s):
         """this is the implementation of the Figure 3 CreateHeadList from the Blender paper"""
-        b_s = 2.0 * self.config.m_o / self.config.epsilon
+        # Figure 3, line 6-7 were moved to configuration of this object
         # from Figure 3, CreateHeadList, line 7
-        tau = b_s * (ln(exp(self.config.epsilon/2.0) + self.config.m_o - 1.0) - ln(self.config.delta))
-        assert tau >= 1
+        assert self.config.tau >= 1.0
         for query, url in optin_database_s.iter_records():
-            y = laplace(b_s)  # TODO: understand and select correct parameter
-            if optin_database_s[query][url].count + y > tau:
+            y = laplace(self.config.b_s)  # TODO: understand and select correct parameter
+            if optin_database_s[query][url].count + y > self.config.tau:
                 self.add((query, url))
         self['*'].touch('*')  # add <*, *> with a count of 0
 
@@ -124,7 +135,7 @@ class HeadList(QueryURLMappingClass):
         pass
 
     def load(self):
-        # populate a HeadList from a json fil
+        # populate a HeadList from a json file
         pass
 
 

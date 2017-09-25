@@ -91,21 +91,27 @@ required_config.add_aggregation(
 
 
 # setup default data structures
-# Most of the major working data structures of this program are
-# multilevel mappings where each level is represented by a different
-# class.
+#
+# The Blender paper refers to several data structures as databases and vectors.
+# However, digging deeper there is really only one data structure: a mapping of
+# mappings to statistical data. The first mapping level uses queries as the key.
+# The second level of mapping uses urls for a key. The lowest level values are
+# just a tuple of stats.
+#
+# This implementation uses classes to represent each level of the mapping as well
+# as the lowest level value.   The implementation classes vary based on the
+# role that the data structure represents.
+#
 # For example, the "optin_db" is represented by the
 # "optin_structures.QueryURLMappingClass" which is keyed by the query.
+#
 # optin_db['some query'] returns an instance of the next level of the
 # structure, an instance of "in_memory_structures.URLStatsMappingClass".
 # This is itself a mapping which is keyed by url.
+#
 # optin_db['some query']['some/url'] returns an instance of a url
 # stats object, "optin_structures.URLStatsForOptin".  This final
 # lowest level object contains stats and methods for individual urls.
-#
-# There are several structures that follow this pattern, each selecting
-# different implementation classes based on the role that the structure
-# needs to play in the algorithm
 #
 # this section consolidates the declaration of the mapping structures into
 # one place.
@@ -176,13 +182,21 @@ def estimate_optin_probabilities(preliminary_head_list, optin_database_t):
 
 # EstimateClientProbabilities
 def estimate_client_probabilities(config, head_list, client_database):
-    epsilon_prime = config.epsilon / config.m_c
-    epsilon_prime_q = config.f_c * epsilon_prime
-    epsilon_prime_u = config.epsilon - epsilon_prime_q
+    # lines 1-3 from Figure 5 have been executed at the end of the
+    # function "estimate_optin_probabilities"
 
-    delta_prime = config.delta / config.m_c
-    delta_prime_q = config.f_c * delta_prime
-    delta_prime_u = delta_prime - delta_prime_q
+    # lines 4-7 from Figure 5 have been moved to the rountine that creates
+    # the client database.  This allows the client database to be just passed in
+    # as a parameter.
+
+    # line 8 from Figure 5 defines a set of constants to be used through the body of the
+    # function.  Because each of these constants is dependent solely on configuration
+    # constants, their calculation was moved to the initialization of configuration
+    # The constants can be accessed in configuration
+    pass
+
+
+
 
 
 if __name__ == "__main__":
@@ -238,7 +252,7 @@ if __name__ == "__main__":
     )
     # optin_database_t.load("loadlocation_t")
 
-    head_list = estimate_optin_probabilities(
+    head_list_for_distribution = estimate_optin_probabilities(
         preliminary_head_list,
         optin_database_t
     )
@@ -248,8 +262,13 @@ if __name__ == "__main__":
         config.client_db
     )
 
-    head_list = estimate_client_probabilities(
+    client_stats = estimate_client_probabilities(
         config,
-        head_list,
+        head_list_for_distribution,
         client_database
+    )
+
+    final_stats = blend_probabilities(
+        head_list_for_distribution,
+        client_stats
     )
