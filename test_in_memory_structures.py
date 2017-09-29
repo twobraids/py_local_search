@@ -9,8 +9,8 @@ from configman.dotdict import (
 
 from blender.in_memory_structures import (
     URLCounter,
-    URLStatsMappingClass,
-    QueryURLMappingClass,
+    URLStatsMapping,
+    QueryURLMapping,
 )
 
 
@@ -51,14 +51,14 @@ class TestURLStats(TestCase):
     def test_instantiation(self):
         config = DotDict()
         config.url_stats_class = URLCounter
-        urls = URLStatsMappingClass(config)
+        urls = URLStatsMapping(config)
         self.assertTrue(urls.config is config)
         self.assertTrue(isinstance(urls.urls, Mapping))
 
     def test_add(self):
         config = DotDict()
         config.url_stats_class = URLCounter
-        urls = URLStatsMappingClass(config)
+        urls = URLStatsMapping(config)
         urls.add('fred')
 
         self.assertTrue('fred' in urls)
@@ -72,7 +72,7 @@ class TestURLStats(TestCase):
     def test_touch(self):
         config = DotDict()
         config.url_stats_class = URLCounter
-        urls = URLStatsMappingClass(config)
+        urls = URLStatsMapping(config)
         urls.touch('fred')
 
         self.assertTrue('fred' in urls)
@@ -94,8 +94,8 @@ class TestQueryURLMappingClass(TestCase):
     def test_instantiation(self):
         config = DotDict()
         config.url_stats_class = URLCounter
-        config.url_mapping_class = URLStatsMappingClass
-        q_u_db = QueryURLMappingClass(config)
+        config.url_mapping_class = URLStatsMapping
+        q_u_db = QueryURLMapping(config)
 
         self.assertTrue(q_u_db.config is config)
         self.assertTrue(isinstance(q_u_db.queries_and_urls, Mapping))
@@ -104,8 +104,8 @@ class TestQueryURLMappingClass(TestCase):
     def test_add(self):
         config = DotDict()
         config.url_stats_class = URLCounter
-        config.url_mapping_class = URLStatsMappingClass
-        q_u_db = QueryURLMappingClass(config)
+        config.url_mapping_class = URLStatsMapping
+        q_u_db = QueryURLMapping(config)
         q_u_db.add(('a_query', 'a_url'))
 
         self.assertTrue('a_query' in q_u_db)
@@ -121,8 +121,8 @@ class TestQueryURLMappingClass(TestCase):
     def test_iter_records(self):
         config = DotDict()
         config.url_stats_class = URLCounter
-        config.url_mapping_class = URLStatsMappingClass
-        q_u_db = QueryURLMappingClass(config)
+        config.url_mapping_class = URLStatsMapping
+        q_u_db = QueryURLMapping(config)
         q_u_pairs = [
             ('q1', 'u1'),
             ('q1', 'u1'),
@@ -156,8 +156,8 @@ class TestQueryURLMappingClass(TestCase):
     def test_subsume_those_not_present(self):
         config = DotDict()
         config.url_stats_class = URLCounter
-        config.url_mapping_class = URLStatsMappingClass
-        reference_q_u_db = QueryURLMappingClass(config)
+        config.url_mapping_class = URLStatsMapping
+        reference_q_u_db = QueryURLMapping(config)
         q_u_pairs = [
             ('q1', 'u1'),
             ('q1', 'u1'),
@@ -171,7 +171,7 @@ class TestQueryURLMappingClass(TestCase):
         for q_u in q_u_pairs:
             reference_q_u_db.add(q_u)
 
-        test_q_u_db = QueryURLMappingClass(config)
+        test_q_u_db = QueryURLMapping(config)
         for q_u in q_u_pairs:
             test_q_u_db.add(q_u)
         additional_q_u_pairs = [

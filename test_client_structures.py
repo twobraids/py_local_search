@@ -9,8 +9,8 @@ from configman.dotdict import (
 
 from blender.in_memory_structures import (
     URLCounter,
-    URLStatsMappingClass,
-    QueryURLMappingClass,
+    URLStatsMapping,
+    QueryURLMapping,
 )
 
 from blender.client_structures import (
@@ -24,15 +24,15 @@ class TestURLStatsForClient(TestCase):
 
     def test_instantiation(self):
         config = DotDict()
-        config.url_stats_class = URLStatsForOptin
-        urls = URLStatsMappingClass(config)
+        config.url_stats_class = URLStatsForClient
+        urls = URLStatsMapping(config)
         self.assertTrue(urls.config is config)
         self.assertTrue(isinstance(urls.urls, Mapping))
 
     def test_add(self):
         config = DotDict()
-        config.url_stats_class = URLStatsForOptin
-        urls = URLStatsMappingClass(config)
+        config.url_stats_class = URLStatsForClient
+        urls = URLStatsMapping(config)
         urls.add('fred')
 
         self.assertTrue('fred' in urls)
@@ -45,8 +45,8 @@ class TestURLStatsForClient(TestCase):
 
     def test_touch(self):
         config = DotDict()
-        config.url_stats_class = URLStatsForOptin
-        urls = URLStatsMappingClass(config)
+        config.url_stats_class = URLStatsForClient
+        urls = URLStatsMapping(config)
         urls.touch('fred')
 
         self.assertTrue('fred' in urls)
@@ -64,11 +64,11 @@ class TestURLStatsForClient(TestCase):
 
     def test_subsume(self):
         config = {}
-        stats_counter_1 = URLStatsForOptin(config)
+        stats_counter_1 = URLStatsForClient(config)
         stats_counter_1.count = 17
         stats_counter_1.probability = 0.5
 
-        stats_counter_2 = URLStatsForOptin(config)
+        stats_counter_2 = URLStatsForClient(config)
         stats_counter_2.increment_count()
         stats_counter_2.probability = 0.25
         stats_counter_1.subsume(stats_counter_2)

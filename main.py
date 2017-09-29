@@ -121,17 +121,17 @@ required_config.add_aggregation(
 default_data_structures = {
     "head_list_db": {  # used for the preliminary_head_list & head_list
         "headlist_class": "blender.optin_structures.HeadList",
-        "url_mapping_class": "blender.in_memory_structures.URLStatsMappingClass",
+        "url_mapping_class": "blender.optin_structures.HeadListURLStatsMapping",
         "url_stats_class": "blender.optin_structures.URLStatsForOptin"
     },
     "optin_db": {  # used for the optin_database_s & optin_database_t
         "optin_db_class": "blender.optin_structures.QueryURLMappingClass",
-        "url_mapping_class": "blender.in_memory_structures.URLStatsMappingClass",
+        "url_mapping_class": "blender.in_memory_structures.URLStatsMapping",
         "url_stats_class": "blender.optin_structures.URLStatsForOptin"
     },
     "client_db": {
-        "client_db_class": "blender.client_structures.ClientQueryURLMappingClass",
-        "url_mapping_class": "blender.in_memory_structures.URLStatsMappingClass",
+        "client_db_class": "blender.client_structures.QueryUrlMappingForClient",
+        "url_mapping_class": "blender.in_memory_structures.URLStatsMapping",
         "url_stats_class": "blender.client_structures.URLStatsForClient"
     },
 }
@@ -178,6 +178,14 @@ def estimate_optin_probabilities(preliminary_head_list, optin_database_t):
     # before EstimateClientProbabilities.  Since this method prepares the head_list
     # for the client, it is best that the star values are added here.
     preliminary_head_list.append_star_values()
+
+    # this is from lines 4-6 of LocalAlg Figure 6.  The original Blender algorithms
+    # call for each client to calculate kappa and tau for each query in the
+    # headlist.  Further, the calculation is called for again in
+    # EstimateClientProbablities Figure 5 line 8.  Since these are constant,
+    # the calculation is moved here and the data stored with the rest of the
+    # Headlist.
+    preliminary_head_list.calculate_tau()
 
     return preliminary_head_list
 

@@ -16,7 +16,8 @@ from configman import (
 
 from blender.in_memory_structures import (
     URLCounter,
-    QueryURLMappingClass
+    URLStatsMapping,
+    QueryURLMapping
 )
 
 
@@ -45,7 +46,19 @@ class URLStatsForOptin(URLCounter):
         )
 
 
-class HeadList(QueryURLMappingClass):
+class HeadListURLStatsMapping(URLStatsMapping):
+    def __init__(self):
+        self.tau = 0.0
+
+    def calculate_tau(self):
+        self.tau = (
+            (exp(self.config.epsilon_prime_q) + (self.config.delta_prime_q / 2.0) * (self.count - 1))
+            /
+            (exp(self.config.epsilon_prime_u) + self.count - 1)
+        )
+
+
+class HeadList(QueryURLMapping):
     """This class add the Blender algorithmic parts to the highest level of Mapping of Mappings"""
     required_config = Namespace()
     required_config.add_option(
@@ -76,6 +89,7 @@ class HeadList(QueryURLMappingClass):
         # will be those with the highest value of some statistic. Rather than sort at the end, this keeps
         # an index based on the statistic.
         self.probability_sorted_index = SortedDictOfLists()
+        self.tau = 0.0
 
     def create_headlist(self, optin_database_s):
         """this is the implementation of the Figure 3 CreateHeadList from the Blender paper"""
@@ -127,6 +141,18 @@ class HeadList(QueryURLMappingClass):
         b_t = 2.0 * self.config.m_o / self.config.epsilon
         for query, url in self.iter_records():
             self[query][url].calculate_variance_relative_to(b_t, query, url, other_query_url_mapping)
+
+    def calculate_tau(self):
+        """from Figure 6 LocalAlg, lines 4-6"""
+        self.tau = (
+            (exp(self.config.epsilon_prime_q) + (self.config.delta_prime_q / 2.0) * (self.count - 1))
+            /
+            (exp(self.config.epsilon_prime_u) + self.count - 1)
+        )
+        for query in self.keys():
+            self[query].calculate_tau()
+
+
 
     def export_for_client_distribution(self):
         # this ought to produce a json file without the probabilites and variance data

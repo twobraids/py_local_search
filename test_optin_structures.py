@@ -15,8 +15,8 @@ from blender.optin_structures import (
     URLStatsForOptin
 )
 from blender.in_memory_structures import (
-    URLStatsMappingClass,
-    QueryURLMappingClass
+    URLStatsMapping,
+    QueryURLMapping
 )
 from blender.main import (
     create_preliminary_headlist,
@@ -29,14 +29,14 @@ class TestURLStatsForOptin(TestCase):
     def test_instantiation(self):
         config = DotDict()
         config.url_stats_class = URLStatsForOptin
-        urls = URLStatsMappingClass(config)
+        urls = URLStatsMapping(config)
         self.assertTrue(urls.config is config)
         self.assertTrue(isinstance(urls.urls, Mapping))
 
     def test_add(self):
         config = DotDict()
         config.url_stats_class = URLStatsForOptin
-        urls = URLStatsMappingClass(config)
+        urls = URLStatsMapping(config)
         urls.add('fred')
 
         self.assertTrue('fred' in urls)
@@ -50,7 +50,7 @@ class TestURLStatsForOptin(TestCase):
     def test_touch(self):
         config = DotDict()
         config.url_stats_class = URLStatsForOptin
-        urls = URLStatsMappingClass(config)
+        urls = URLStatsMapping(config)
         urls.touch('fred')
 
         self.assertTrue('fred' in urls)
@@ -85,7 +85,7 @@ class TestURLStatsForOptin(TestCase):
 class TestHeadList(TestCase):
 
     def _create_optin_db_01(self, config):
-        q_u_db = QueryURLMappingClass(config)
+        q_u_db = QueryURLMapping(config)
         q_u_pairs = [
             ('q1', 'q1u1', 10),
             ('q2', 'q2u1', 10),
@@ -106,7 +106,7 @@ class TestHeadList(TestCase):
         return q_u_db
 
     def _create_optin_db_02(self, config):
-        q_u_db = QueryURLMappingClass(config)
+        q_u_db = QueryURLMapping(config)
         q_u_pairs = [
             ('q1', 'q1u1', 10),
             ('q2', 'q2u1', 10),
@@ -143,14 +143,14 @@ class TestHeadList(TestCase):
         config.m = 5
 
         config.opt_in_db = DotDictWithAcquisition()
-        config.opt_in_db.headlist_class = QueryURLMappingClass
+        config.opt_in_db.headlist_class = QueryURLMapping
         config.opt_in_db.url_stats_class = URLStatsForOptin
-        config.opt_in_db.url_mapping_class = URLStatsMappingClass
+        config.opt_in_db.url_mapping_class = URLStatsMapping
 
         config.head_list_db = DotDictWithAcquisition()
         config.head_list_db.headlist_class = HeadList
         config.head_list_db.url_stats_class = URLStatsForOptin
-        config.head_list_db.url_mapping_class = URLStatsMappingClass
+        config.head_list_db.url_mapping_class = URLStatsMapping
         config.head_list_db.b_s = 5.0
         config.head_list_db.tau = 83.06062179501248
 
@@ -191,14 +191,14 @@ class TestHeadList(TestCase):
         config.m = 5
 
         config.opt_in_db = DotDictWithAcquisition()
-        config.opt_in_db.optin_db_class = QueryURLMappingClass
+        config.opt_in_db.optin_db_class = QueryURLMapping
         config.opt_in_db.url_stats_class = URLStatsForOptin
-        config.opt_in_db.url_mapping_class = URLStatsMappingClass
+        config.opt_in_db.url_mapping_class = URLStatsMapping
 
         config.head_list_db = DotDictWithAcquisition()
         config.head_list_db.headlist_class = HeadList
         config.head_list_db.url_stats_class = URLStatsForOptin
-        config.head_list_db.url_mapping_class = URLStatsMappingClass
+        config.head_list_db.url_mapping_class = URLStatsMapping
         config.head_list_db.b_s = 5.0
         config.head_list_db.b_t = 5.0
         config.head_list_db.tau = 83.06062179501248
@@ -243,14 +243,14 @@ class TestHeadList(TestCase):
         config.m = 2
 
         config.opt_in_db = DotDictWithAcquisition()
-        config.opt_in_db.optin_db_class = QueryURLMappingClass
+        config.opt_in_db.optin_db_class = QueryURLMapping
         config.opt_in_db.url_stats_class = URLStatsForOptin
-        config.opt_in_db.url_mapping_class = URLStatsMappingClass
+        config.opt_in_db.url_mapping_class = URLStatsMapping
 
         config.head_list_db = DotDictWithAcquisition()
         config.head_list_db.headlist_class = HeadList
         config.head_list_db.url_stats_class = URLStatsForOptin
-        config.head_list_db.url_mapping_class = URLStatsMappingClass
+        config.head_list_db.url_mapping_class = URLStatsMapping
         config.head_list_db.b_s = 5.0
         config.head_list_db.b_t = 5.0
         config.head_list_db.tau = 83.06062179501248
@@ -319,14 +319,14 @@ class TestHeadList(TestCase):
         config.m = 2
 
         config.opt_in_db = DotDictWithAcquisition()
-        config.opt_in_db.optin_db_class = QueryURLMappingClass
+        config.opt_in_db.optin_db_class = QueryURLMapping
         config.opt_in_db.url_stats_class = URLStatsForOptin
-        config.opt_in_db.url_mapping_class = URLStatsMappingClass
+        config.opt_in_db.url_mapping_class = URLStatsMapping
 
         config.head_list_db = DotDictWithAcquisition()
         config.head_list_db.headlist_class = HeadList
         config.head_list_db.url_stats_class = URLStatsForOptin
-        config.head_list_db.url_mapping_class = URLStatsMappingClass
+        config.head_list_db.url_mapping_class = URLStatsMapping
         config.head_list_db.b_s = 5.0
         config.head_list_db.b_t = 5.0
         config.head_list_db.tau = 83.06062179501248

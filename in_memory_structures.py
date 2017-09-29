@@ -41,7 +41,7 @@ class URLCounter(RequiredConfig):
         self.count += other_URLStatsCounter.count
 
 
-class URLStatsMappingClass(MutableMapping, RequiredConfig):
+class URLStatsMapping(MutableMapping, RequiredConfig):
     """A mapping of URLs to URL stats classes.  The keys are URLs as strings and the values
     are instances of the class representing the URL data and stats.
     """
@@ -102,7 +102,7 @@ class URLStatsMappingClass(MutableMapping, RequiredConfig):
         return key in self.urls
 
 
-class QueryURLMappingClass(MutableMapping, RequiredConfig):
+class QueryURLMapping(MutableMapping, RequiredConfig):
     """This is the top of the mappings of mappings. The keys are queries and the values are
     instances of a mapping of URLs to URL statistics"""
     required_config = Namespace()

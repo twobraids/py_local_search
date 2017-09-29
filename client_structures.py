@@ -4,9 +4,9 @@ from numpy.random import (
     choice,
 )
 
-from in_memory_structures import (
+from blender.in_memory_structures import (
     URLCounter,
-    QueryURLMappingClass,
+    QueryURLMapping,
 )
 
 
@@ -52,7 +52,7 @@ class URLStatsForClient(URLCounter):
         self.variance = 0.0
 
 
-class QueryUrlMappingForClient(QueryURLMappingClass):
+class QueryUrlMappingForClient(QueryURLMapping):
     def __init__(self, config):
         super(QueryUrlMappingForClient, self).__init__(config)
         self.probability = 0.0  # TODO
