@@ -13,13 +13,14 @@ from blender.in_memory_structures import (
     QueryURLMappingClass,
 )
 
-from blender.optin_structures import (
-    URLStatsForOptin,
+from blender.client_structures import (
+    QueryUrlMappingForClient,
+    URLStatsForClient
 )
 
 
 
-class TestURLStatsForOptin(TestCase):
+class TestURLStatsForClient(TestCase):
 
     def test_instantiation(self):
         config = DotDict()
