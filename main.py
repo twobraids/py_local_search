@@ -62,11 +62,13 @@ required_config.add_option(
 # referenced in EstimateClientProbabilities Figure 5. While they are
 # defined in functions, they really depend only on configuration and can
 # therefore be calculated at program initialization time.
-
 required_config.add_aggregation(
     "epsilon_prime",  # Figure 6 LocalAlg line 2
     lambda config: config.epsilon / config.m_c
 )
+# because configman cannot guarantee the order of initialization of these
+# aggregations, they cannot depend on each other.  That's why each has
+# been rewritten from the original definitions in Figure 6 lines 2-3
 required_config.add_aggregation(
     "epsilon_prime_q",  # Figure 6 LocalAlg line 3
     lambda config: config.f_c * config.epsilon / config.m_c
