@@ -30,9 +30,9 @@ class URLStatsForOptin(URLCounter):
     def subsume(self, other_URLStatsCounter):
         super(URLStatsForOptin, self).subsume(other_URLStatsCounter)
         self.probability += other_URLStatsCounter.probability
-        # self.sigma   # take no action, will be calculated else where
+        # self.variance   # take no action, do it later
 
-    def calculate_probability_relative_to(self, b, query, url, other_query_url_mapping):
+    def calculate_probability_relative_to(self, b, query, url, head_list, other_query_url_mapping):
         y = laplace(b)  # TODO: understand and select correct parameter
         self.probability = (
             (other_query_url_mapping[query][url].count * y) / other_query_url_mapping.count
@@ -107,7 +107,13 @@ class HeadList(QueryURLMapping):
         # Figure 4: lines 10 - 12
         for query in self.keys():
             for url in self[query].keys():
-                self[query][url].calculate_probability_relative_to(self.config.b_t, query, url, other_query_url_mapping)
+                self[query][url].calculate_probability_relative_to(
+                    self.config.b_t,
+                    query,
+                    url,
+                    None,  # reserved for head_list which is not required here
+                    other_query_url_mapping
+                )
                 self[query].update_probability(self[query][url])
                 # the original algorthim in Figure 4 calculated o_2 (sigma/variance) at this point.
                 # However, in that algorithm most of those values will be thrown away without being used.
