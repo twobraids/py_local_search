@@ -25,7 +25,7 @@ from configman import (
 )
 
 
-#--------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------
 # 3rd Level Structures
 #     Contains a single url's stats
 #     see constructor for attributes
@@ -46,7 +46,7 @@ class URLCounter(RequiredConfig):
         self.count += other_URLStatsCounter.count
 
 
-#--------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------
 # 2nd Level Structures
 #     Contains a single query's stats and urls
 #     Mapping
@@ -114,7 +114,7 @@ class URLStatsMapping(MutableMapping, RequiredConfig):
         return key in self.urls
 
 
-#--------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------
 # Top Level Structures -
 #    Mapping
 #        queries serve as the key

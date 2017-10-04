@@ -35,14 +35,15 @@ def local_alg(config, head_list, local_query_url_iter):
             # with duplicates?
             a_query = choice(head_list.keys())
 
-#--------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------
 # 3rd Level Structures
 #     Contains a single url's stats
 #     see constructor for attributes
 
 # None defined
 
-#--------------------------------------------------------------------------------------------------------
+
+# --------------------------------------------------------------------------------------------------------
 # 2nd Level Structures
 #     Contains a single query's stats and urls
 #     Mapping
@@ -55,23 +56,18 @@ class URLStatsForClient(URLCounter):
         self.probability = 0.0  # the computed probability of this URL
         self.variance = 0.0  # the variance of this URL
 
-    #def subsume(self, other_URLStatsCounter):
-        #super(URLStatsForOptin, self).subsume(other_URLStatsCounter)
-        #self.probability += other_URLStatsCounter.probability
-        ## self.sigma   # take no action, will be calculated else where
-
-    def calculate_probability_relative_to(self, r_c_q_u, query, url, head_list, other_query_url_mapping):
+    def calculate_probability_relative_to(self, other_query_url_mapping, query='*', url='*', r_c_q_u=0.0, head_list=None):
         other_query = other_query_url_mapping[query]
         other_url = other_query[url]
         self.probability = (
             # r_c_q_u - ((1 - ))  # TODO:
         )
 
-    def calculate_variance_relative_to(self, r_c_q_u, query, url, head_list, other_query_url_mapping):
+    def calculate_variance_relative_to(self, other_query_url_mapping, query='*', url='*', r_c_q_u=0.0, head_list=None):
         self.variance = 0.0
 
 
-#--------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------
 # Top Level Structures -
 #    Mapping
 #        queries serve as the key
@@ -109,9 +105,9 @@ class QueryUrlMappingForClient(QueryURLMapping):
             for query, url in other_query_url_mapping.iter_records():
                 r_c_q_u = other_url.count / other_query_url_mapping.count  # TODO: rename
                 self[query][url].calculate_probability_relative_to(
-                    r_c_q_u,
-                    query,
-                    url,
-                    head_list,
-                    other_query_url_mapping
+                    other_query_url_mapping,
+                    query=query,
+                    url=url,
+                    r_c_q_u=r_c_q_u,
+                    head_list=None
                 )

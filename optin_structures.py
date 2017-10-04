@@ -21,7 +21,7 @@ from blender.in_memory_structures import (
 )
 
 
-#--------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------
 # 3rd Level Structures
 #     Contains a single url's stats
 #     see constructor for attributes
@@ -37,20 +37,21 @@ class URLStatsForOptin(URLCounter):
         self.probability += other_URLStatsCounter.probability
         # self.variance   # take no action, do it later
 
-    def calculate_probability_relative_to(self, b, query, url, head_list_unused, other_query_url_mapping):
+    def calculate_probability_relative_to(self, other_query_url_mapping, query="*", url="*", b=0.0, head_list=None):
         y = laplace(b)  # TODO: understand and select correct parameter
         self.probability = (
             (other_query_url_mapping[query][url].count * y) / other_query_url_mapping.count
         )
 
-    def calculate_variance_relative_to(self, b_t, query, url, other_query_url_mapping):
+    def calculate_variance_relative_to(self, other_query_url_mapping, query='*', url='*', b_t=0.0):
         self.variance = (
             (self.probability * (1.0 - self.probability)) / (other_query_url_mapping.count - 1.0)
             +
             (2.0 * b_t * b_t) / (other_query_url_mapping.count * (other_query_url_mapping.count - 1.0))
         )
 
-#--------------------------------------------------------------------------------------------------------
+
+# --------------------------------------------------------------------------------------------------------
 # 2nd Level Structures
 #     Contains a single query's stats and urls
 #     Mapping
@@ -58,18 +59,19 @@ class URLStatsForOptin(URLCounter):
 #         3rd Level structures as the value
 
 class HeadListURLStatsMapping(URLStatsMapping):
-    def __init__(self):
+    def __init__(self, config):
+        super(HeadListURLStatsMapping, self).__init__(config)
         self.tau = 0.0
 
     def calculate_tau(self):
         self.tau = (
-            (exp(self.config.epsilon_prime_q) + (self.config.delta_prime_q / 2.0) * (self.count - 1))
+            (exp(self.config.epsilon_prime_q) + (self.config.delta_prime_q / 2.0) * (self.count - 1.0))
             /
-            (exp(self.config.epsilon_prime_u) + self.count - 1)
+            (exp(self.config.epsilon_prime_u) + self.count - 1.0)
         )
 
 
-#--------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------
 # Top Level Structures -
 #    Mapping
 #        queries serve as the key
@@ -125,11 +127,10 @@ class HeadList(QueryURLMapping):
         for query in self.keys():
             for url in self[query].keys():
                 self[query][url].calculate_probability_relative_to(
-                    self.config.b_t,
-                    query,
-                    url,
-                    None,  # reserved for head_list which is not required here
-                    other_query_url_mapping
+                    other_query_url_mapping,
+                    query=query,
+                    url=url,
+                    b=self.config.b_t,
                 )
                 self[query].update_probability(self[query][url])
                 # the original algorthim in Figure 4 calculated o_2 (sigma/variance) at this point.
@@ -163,7 +164,12 @@ class HeadList(QueryURLMapping):
         # Figure 4: line 15 & 13
         b_t = 2.0 * self.config.m_o / self.config.epsilon
         for query, url in self.iter_records():
-            self[query][url].calculate_variance_relative_to(b_t, query, url, other_query_url_mapping)
+            self[query][url].calculate_variance_relative_to(
+                other_query_url_mapping,
+                query=query,
+                url=url,
+                b_t=b_t
+            )
 
     def calculate_tau(self):
         """from Figure 6 LocalAlg, lines 4-6"""
@@ -174,8 +180,6 @@ class HeadList(QueryURLMapping):
         )
         for query in self.keys():
             self[query].calculate_tau()
-
-
 
     def export_for_client_distribution(self):
         # this ought to produce a json file without the probabilites and variance data

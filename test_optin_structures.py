@@ -1,5 +1,6 @@
 from unittest import TestCase
 from mock import (
+    MagicMock,
     patch
 )
 from collections import (
@@ -12,9 +13,11 @@ from configman.dotdict import (
 
 from blender.optin_structures import (
     HeadList,
+    HeadListURLStatsMapping,
     URLStatsForOptin
 )
 from blender.in_memory_structures import (
+    URLCounter,
     URLStatsMapping,
     QueryURLMapping
 )
@@ -81,12 +84,71 @@ class TestURLStatsForOptin(TestCase):
         self.assertEqual(stats_counter_2.count, 1)
         self.assertEqual(stats_counter_1.probability, 0.75)
 
-    def test_calculate_probability_relative_to(self):
+    @patch('blender.optin_structures.laplace',)
+    def test_calculate_probability_relative_to(self, laplace_mock):
+        # we need control over the laplace method so that it returns a
+        # known value.  Having it mocked to always return 1 makes it easier
+        # to test the resultant values in the equations that use laplace
+        laplace_mock.return_value = 1
 
+        other_query_url_mapping = MagicMock()
+        other_query_url_mapping['q1']['u1'].count = 10.0
+        other_query_url_mapping.count = 100.0
+
+        config = {}
+        stats_counter_1 = URLStatsForOptin(config)
+        stats_counter_1.calculate_probability_relative_to(
+            other_query_url_mapping,
+            query='q1',
+            url='u1'
+        )
+        laplace_mock.assert_called_once_with(0.0)
+        self.assertEqual(stats_counter_1.probability, 0.1)
+
+    def test_calculate_variance_relative_to(self):
+        other_query_url_mapping = MagicMock()
+        other_query_url_mapping.count = 100.0
+
+        config = {}
+        stats_counter_1 = URLStatsForOptin(config)
+        stats_counter_1.probability = 0.1
+        stats_counter_1.calculate_variance_relative_to(
+            other_query_url_mapping,
+            b_t=1.0
+        )
+        print(stats_counter_1.variance)
+        self.assertAlmostEqual(stats_counter_1.variance, 0.00111111)
+
+
+class TestHeadListURLStatsMapping(TestCase):
+
+    def test_instantiation(self):
+        config = DotDict()
+        config.url_stats_class = URLCounter
+
+        urls = HeadListURLStatsMapping(config)
+        self.assertTrue(urls.config is config)
+        self.assertTrue(isinstance(urls.urls, Mapping))
+        self.assertEqual(urls.tau, 0.0)
+
+    def test_calculate_tau(self):
+        config = DotDict()
+        config.epsilon_prime_q = 1.0
+        config.delta_prime_q = 1.0
+        config.epsilon_prime_u = 1.0
+        config.url_stats_class = URLCounter
+
+        urls = HeadListURLStatsMapping(config)
+        urls.add('u1')
+        urls.add('u2')
+        urls.calculate_tau()
+
+        self.assertEqual(urls.count, 2.0)
+        print(urls.tau)
+        self.assertAlmostEqual(urls.tau, 0.865529289)
 
 
 class TestHeadList(TestCase):
-
     def _create_optin_db_01(self, config):
         q_u_db = QueryURLMapping(config)
         q_u_pairs = [
@@ -220,10 +282,6 @@ class TestHeadList(TestCase):
 
         head_list.calculate_probabilities_relative_to(optin_db)
 
-        #for query, url in head_list.iter_records():
-            #url_stats = head_list[query][url]
-            #print (query, url, url_stats.count, url_stats.probability, url_stats.variance)
-
         for query, url in optin_db.iter_records():
             url_stats = head_list[query][url]
             if query == '*':
@@ -304,7 +362,7 @@ class TestHeadList(TestCase):
         sum = 0.0
         for query in head_list.keys():
             sum += head_list[query].probability
-        self.assertAlmostEquals(sum, 1.0)
+        self.assertAlmostEqual(sum, 1.0)
 
     @patch('blender.optin_structures.laplace',)
     def test_calculate_sigma_relative_to(self, laplace_mock):
