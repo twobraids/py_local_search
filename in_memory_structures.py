@@ -25,6 +25,11 @@ from configman import (
 )
 
 
+#--------------------------------------------------------------------------------------------------------
+# 3rd Level Structures
+#     Contains a single url's stats
+#     see constructor for attributes
+
 class URLCounter(RequiredConfig):
     """Lowest level of the nested mappings. This is the data associated with a URL.
     This data structure will likely be modified to include page title and excerpt
@@ -40,6 +45,13 @@ class URLCounter(RequiredConfig):
     def subsume(self, other_URLStatsCounter):
         self.count += other_URLStatsCounter.count
 
+
+#--------------------------------------------------------------------------------------------------------
+# 2nd Level Structures
+#     Contains a single query's stats and urls
+#     Mapping
+#         urls are the key
+#         3rd Level structures as the value
 
 class URLStatsMapping(MutableMapping, RequiredConfig):
     """A mapping of URLs to URL stats classes.  The keys are URLs as strings and the values
@@ -101,6 +113,12 @@ class URLStatsMapping(MutableMapping, RequiredConfig):
     def __contains__(self, key):
         return key in self.urls
 
+
+#--------------------------------------------------------------------------------------------------------
+# Top Level Structures -
+#    Mapping
+#        queries serve as the key
+#        2nd Level structures as the value
 
 class QueryURLMapping(MutableMapping, RequiredConfig):
     """This is the top of the mappings of mappings. The keys are queries and the values are

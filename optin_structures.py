@@ -21,6 +21,11 @@ from blender.in_memory_structures import (
 )
 
 
+#--------------------------------------------------------------------------------------------------------
+# 3rd Level Structures
+#     Contains a single url's stats
+#     see constructor for attributes
+
 class URLStatsForOptin(URLCounter):
     def __init__(self, config, count=0):
         super(URLStatsForOptin, self).__init__(config, count)
@@ -32,7 +37,7 @@ class URLStatsForOptin(URLCounter):
         self.probability += other_URLStatsCounter.probability
         # self.variance   # take no action, do it later
 
-    def calculate_probability_relative_to(self, b, query, url, head_list, other_query_url_mapping):
+    def calculate_probability_relative_to(self, b, query, url, head_list_unused, other_query_url_mapping):
         y = laplace(b)  # TODO: understand and select correct parameter
         self.probability = (
             (other_query_url_mapping[query][url].count * y) / other_query_url_mapping.count
@@ -45,6 +50,12 @@ class URLStatsForOptin(URLCounter):
             (2.0 * b_t * b_t) / (other_query_url_mapping.count * (other_query_url_mapping.count - 1.0))
         )
 
+#--------------------------------------------------------------------------------------------------------
+# 2nd Level Structures
+#     Contains a single query's stats and urls
+#     Mapping
+#         urls are the key
+#         3rd Level structures as the value
 
 class HeadListURLStatsMapping(URLStatsMapping):
     def __init__(self):
@@ -58,6 +69,12 @@ class HeadListURLStatsMapping(URLStatsMapping):
         )
 
 
+#--------------------------------------------------------------------------------------------------------
+# Top Level Structures -
+#    Mapping
+#        queries serve as the key
+#        2nd Level structures as the value
+
 class HeadList(QueryURLMapping):
     """This class add the Blender algorithmic parts to the highest level of Mapping of Mappings"""
     required_config = Namespace()
@@ -68,19 +85,19 @@ class HeadList(QueryURLMapping):
     )
     required_config.add_aggregation(
         "b_s",  # from Figure #3, line 6
-        lambda config: 2.0 * self.config.m_o / self.config.epsilon
+        lambda config: 2.0 * config.m_o / config.epsilon
     )
     required_config.add_aggregation(
         "tau",  # from Figure #3, line 7
         lambda config: (
-            (2.0 * self.config.m_o / self.config.epsilon)
+            (2.0 * config.m_o / config.epsilon)
             *
-            (ln(exp(self.config.epsilon/2.0) + self.config.m_o - 1.0) - ln(self.config.delta))
+            (ln(exp(config.epsilon/2.0) + config.m_o - 1.0) - ln(config.delta))
         )
     )
     required_config.add_aggregation(
         "b_t",  # from Figure #4, line 9 - notice same definition as "b_s"
-        lambda config: 2.0 * self.config.m_o / self.config.epsilon
+        lambda config: 2.0 * config.m_o / config.epsilon
     )
 
     def __init__(self, config):

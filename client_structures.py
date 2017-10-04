@@ -35,6 +35,19 @@ def local_alg(config, head_list, local_query_url_iter):
             # with duplicates?
             a_query = choice(head_list.keys())
 
+#--------------------------------------------------------------------------------------------------------
+# 3rd Level Structures
+#     Contains a single url's stats
+#     see constructor for attributes
+
+# None defined
+
+#--------------------------------------------------------------------------------------------------------
+# 2nd Level Structures
+#     Contains a single query's stats and urls
+#     Mapping
+#         urls are the key
+#         3rd Level structures as the value
 
 class URLStatsForClient(URLCounter):
     def __init__(self, config, count=0):
@@ -57,6 +70,12 @@ class URLStatsForClient(URLCounter):
     def calculate_variance_relative_to(self, r_c_q_u, query, url, head_list, other_query_url_mapping):
         self.variance = 0.0
 
+
+#--------------------------------------------------------------------------------------------------------
+# Top Level Structures -
+#    Mapping
+#        queries serve as the key
+#        2nd Level structures as the value
 
 class QueryUrlMappingForClient(QueryURLMapping):
     def __init__(self, config):
