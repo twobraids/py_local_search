@@ -203,7 +203,14 @@ def estimate_client_probabilities(config, head_list, client_database):
     # function.  Because each of these constants is dependent solely on configuration
     # constants, their calculation was moved to the initialization of configuration
     # The constants can be accessed in configuration
-    pass
+
+    probability_varience_vectors = config.client_db.client_db_class(config.client_db)
+
+
+
+
+
+
 
 
 

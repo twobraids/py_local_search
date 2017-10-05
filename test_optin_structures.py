@@ -379,7 +379,7 @@ class TestHeadList(TestCase):
         config.m_o = 10
         config.m = 2
 
-        config.opt_in_db = DotDictWithAcquisition()
+        config = DotDictWithAcquisition()
         config.opt_in_db.optin_db_class = QueryURLMapping
         config.opt_in_db.url_stats_class = URLStatsForOptin
         config.opt_in_db.url_mapping_class = URLStatsMapping
