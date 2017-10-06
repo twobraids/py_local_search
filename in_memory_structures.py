@@ -46,6 +46,31 @@ class URLCounter(RequiredConfig):
         self.count += other_URLStatsCounter.count
 
 
+class URLStatsWithProbabity(URLCounter):
+    def __init__(self, config, count=0):
+        super(URLStatsWithProbabity, self).__init__(config, count)
+        self.probability = 0.0  # the computed probability of this URL
+        self.variance = 0.0  # the variance of this URL
+
+    def subsume(self, other_URLStatsCounter):
+        super(URLStatsWithProbabity, self).subsume(other_URLStatsCounter)
+        self.probability += other_URLStatsCounter.probability
+        # self.variance   # take no action, do it later
+
+    def calculate_probability_relative_to(self, other_query_url_mapping, query="*", url="*", b=0.0, head_list=None):
+        y = laplace(b)  # TODO: understand and select correct parameter
+        self.probability = (
+            (other_query_url_mapping[query][url].count * y) / other_query_url_mapping.count
+        )
+
+    def calculate_variance_relative_to(self, other_query_url_mapping, query='*', url='*', b_t=0.0):
+        self.variance = (
+            (self.probability * (1.0 - self.probability)) / (other_query_url_mapping.count - 1.0)
+            +
+            (2.0 * b_t * b_t) / (other_query_url_mapping.count * (other_query_url_mapping.count - 1.0))
+        )
+
+
 # --------------------------------------------------------------------------------------------------------
 # 2nd Level Structures
 #     Contains a single query's stats and urls

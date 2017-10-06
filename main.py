@@ -120,19 +120,19 @@ required_config.add_aggregation(
 
 default_data_structures = {
     "head_list_db": {  # used for the preliminary_head_list & head_list
-        "headlist_class": "blender.optin_structures.HeadList",
-        "url_mapping_class": "blender.optin_structures.HeadListURLStatsMapping",
-        "url_stats_class": "blender.optin_structures.URLStatsForOptin"
+        "headlist_class": "blender.head_list.HeadList",
+        "url_mapping_class": "blender.head_list.HeadListURLStatsMapping",
+        "url_stats_class": "blender.in_memory_structures.URLStatsWithProbabity"
     },
     "optin_db": {  # used for the optin_database_s & optin_database_t
         "optin_db_class": "blender.optin_structures.QueryURLMappingClass",
         "url_mapping_class": "blender.in_memory_structures.URLStatsMapping",
-        "url_stats_class": "blender.optin_structures.URLStatsForOptin"
+        "url_stats_class": "blender.optin_structures.URLStatsWithProbabity"
     },
     "client_db": {
         "client_db_class": "blender.client_structures.QueryUrlMappingForClient",
-        "url_mapping_class": "blender.in_memory_structures.URLStatsMapping",
-        "url_stats_class": "blender.client_structures.URLStatsForClient"
+        "url_mapping_class": "blender.client_structures.URLStatsMapping",
+        "url_stats_class": "blender.client_structures.URLStatsWithProbabity"
     },
 }
 
