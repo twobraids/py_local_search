@@ -9,7 +9,8 @@ from numpy.random import (
 )
 
 from blender.in_memory_structures import (
-    URLCounter,
+    URLStatsWithProbability,
+    URLStatsMapping,
     QueryURLMapping,
 )
 
@@ -40,7 +41,7 @@ def local_alg(config, head_list, local_query_url_iter):
 #     Contains a single url's stats
 #     see constructor for attributes
 
-class URLStatsForClient(URLCounter):
+class URLStatsForClient(URLStatsWithProbability):
     def __init__(self, config, count=0):
         super(URLStatsForClient, self).__init__(config, count)
         self.probability = 0.0  # the computed probability of this URL
@@ -69,7 +70,7 @@ class URLStatsForClient(URLCounter):
         term_2a = 2.0 * other_query_url_mapping.count / (other_query_url_mapping.count - 1.0)
         # note t1 / t2 / t3 here instead of the equivalent t1 / (t2 * t3)
         term_2b = (1.0 - head_list.tau) / (head_list.count - 1.0) / head_list_query.count
-        term_2c = (head_list.tau - head_list.tau * head_list_query.tau) /
+        term_2c = (head_list.tau - head_list.tau * head_list_query.tau) / (head_list_query.count - 1.0)
         term_2d = r_c_q_u * (head_list.count - 2.0 + head_list.tau) / (head_list.count * head_list.tau - 1.0)
         term2 = term_2a * (term_2b - term_2c) * term_2d
         # note t1 / t2 / t3 here instead of the equivalent t1 / (t2 * t3)
@@ -146,3 +147,5 @@ class URLStatsMappingForClient(URLStatsMapping):
 #        queries serve as the key
 #        2nd Level structures as the value
 
+class QueryUrlMappingForClient(QueryURLMapping):
+    pass

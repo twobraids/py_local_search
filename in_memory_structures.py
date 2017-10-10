@@ -24,6 +24,12 @@ from configman import (
     class_converter,
 )
 
+from numpy.random import (
+    laplace
+)
+
+
+
 
 # --------------------------------------------------------------------------------------------------------
 # 3rd Level Structures
@@ -46,14 +52,14 @@ class URLCounter(RequiredConfig):
         self.count += other_URLStatsCounter.count
 
 
-class URLStatsWithProbabity(URLCounter):
+class URLStatsWithProbability(URLCounter):
     def __init__(self, config, count=0):
-        super(URLStatsWithProbabity, self).__init__(config, count)
+        super(URLStatsWithProbability, self).__init__(config, count)
         self.probability = 0.0  # the computed probability of this URL
         self.variance = 0.0  # the variance of this URL
 
     def subsume(self, other_URLStatsCounter):
-        super(URLStatsWithProbabity, self).subsume(other_URLStatsCounter)
+        super(URLStatsWithProbability, self).subsume(other_URLStatsCounter)
         self.probability += other_URLStatsCounter.probability
         # self.variance   # take no action, do it later
 
