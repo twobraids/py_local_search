@@ -169,8 +169,8 @@ class TestHeadList(TestCase):
 
         config.head_list_db = DotDictWithAcquisition()
         config.head_list_db.headlist_class = HeadList
+        config.head_list_db.url_mapping_class = HeadListURLStatsMapping
         config.head_list_db.url_stats_class = URLStatsWithProbability
-        config.head_list_db.url_mapping_class = URLStatsMapping
         config.head_list_db.b_s = 5.0
         config.head_list_db.b_t = 5.0
         config.head_list_db.tau = 83.06062179501248
@@ -217,8 +217,8 @@ class TestHeadList(TestCase):
 
         config.head_list_db = DotDictWithAcquisition()
         config.head_list_db.headlist_class = HeadList
+        config.head_list_db.url_mapping_class = HeadListURLStatsMapping
         config.head_list_db.url_stats_class = URLStatsWithProbability
-        config.head_list_db.url_mapping_class = URLStatsMapping
         config.head_list_db.b_s = 5.0
         config.head_list_db.b_t = 5.0
         config.head_list_db.tau = 83.06062179501248
@@ -293,8 +293,8 @@ class TestHeadList(TestCase):
 
         config.head_list_db = DotDictWithAcquisition()
         config.head_list_db.headlist_class = HeadList
+        config.head_list_db.url_mapping_class = HeadListURLStatsMapping
         config.head_list_db.url_stats_class = URLStatsWithProbability
-        config.head_list_db.url_mapping_class = URLStatsMapping
         config.head_list_db.b_s = 5.0
         config.head_list_db.b_t = 5.0
         config.head_list_db.tau = 83.06062179501248
