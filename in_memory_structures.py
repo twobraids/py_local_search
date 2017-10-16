@@ -179,7 +179,7 @@ class QueryURLMapping(MutableMapping, RequiredConfig):
 
     def subsume_those_not_present_in(self, other_query_url_mapping):
         """take all <q, u> records in this collection that are not in the other_query_url_mapping and
-        merge their statistics into ths collection's <*, *> entry"""
+        merge their statistics into this collection's <*, *> entry"""
         to_be_deleted_list = []
         if '*' not in self.queries_and_urls:
             self['*'].touch('*')

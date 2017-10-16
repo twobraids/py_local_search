@@ -29,6 +29,15 @@ required_config.head_list_db.add_option(
     doc="dependency injection of a class to serve as the HeadList"
 )
 
+required_config.namespace('final_probabilies_db')
+required_config.head_list_db.add_option(
+    name="final_probabilites_db_class",
+    default="blender.optin_structures.HeadList",
+    from_string_converter=class_converter,
+    doc="dependency injection of a class to serve as the HeadList"
+)
+
+
 required_config.add_option(
     "epsilon",
     default=4.0,
@@ -125,14 +134,19 @@ default_data_structures = {
         "url_stats_class": "blender.in_memory_structures.URLStatsWithProbabity"
     },
     "optin_db": {  # used for the optin_database_s & optin_database_t
-        "optin_db_class": "blender.optin_structures.QueryURLMappingClass",
+        "optin_db_class": "blender.head_list.QueryURLMappingClass",
         "url_mapping_class": "blender.in_memory_structures.URLStatsMapping",
-        "url_stats_class": "blender.optin_structures.URLStatsWithProbabity"
+        "url_stats_class": "blender.in_memory_structures.URLStatsWithProbabity"
     },
     "client_db": {
         "client_db_class": "blender.client_structures.QueryUrlMappingForClient",
         "url_mapping_class": "blender.client_structures.URLStatsMapping",
         "url_stats_class": "blender.client_structures.URLStatsWithProbabity"
+    },
+    "final_db": {
+        "client_db_class": "blender.head_list.QueryUrlMappingForClient",
+        "url_mapping_class": "blender.in_memory_structures.URLStatsMapping",
+        "url_stats_class": "blender.final_structures.URLStatsWithProbabity"
     },
 }
 
@@ -187,6 +201,9 @@ def estimate_optin_probabilities(preliminary_head_list, optin_database_t):
     # Headlist.
     preliminary_head_list.calculate_tau()
 
+    # at this point the preliminary_head_list is the final headlist.  It includes
+    # the vector of probabilities and variances along with the tau and kappa required
+    # for further steps
     return preliminary_head_list
 
 
@@ -206,14 +223,24 @@ def estimate_client_probabilities(config, head_list, client_database):
 
     probability_varience_vectors = config.client_db.client_db_class(config.client_db)
 
+    return probability_varience_vectors
 
+# Blender merge
+def blend_probabilities(config, optin_probabilities, client_probabilities):
+    # the original code called for the optin_probabilities and the head_list as separate
+    # entities.  They're much more easily stored in the same data structure to avoid a lot
+    # duplicated keys and values.
 
+    final_probabilities = config.final_probabilies_db.final_probabilites_db_class(
+        config.final_probabilies_db
+    )
+    for query, url in optin_probabilities.iter_records():
+        final_probabilities[query][url].calculate_probability(
+            optin_probabilities[query][url],
+            client_probabilities[query][url]
+        )
 
-
-
-
-
-
+    return final_probabilities
 
 
 if __name__ == "__main__":
