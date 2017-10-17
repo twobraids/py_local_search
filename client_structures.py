@@ -4,7 +4,6 @@ from math import (
 
 from numpy.random import (
     random,
-    laplace,
     choice,
 )
 
@@ -36,11 +35,11 @@ def local_alg(config, head_list, local_query_url_iter):
             # with duplicates?
             a_query = choice(head_list.keys())
 
+
 # --------------------------------------------------------------------------------------------------------
 # 3rd Level Structures
 #     Contains a single url's stats
 #     see constructor for attributes
-
 class URLStatsForClient(URLStatsWithProbability):
     def __init__(self, config, count=0):
         super(URLStatsForClient, self).__init__(config, count)
@@ -49,7 +48,6 @@ class URLStatsForClient(URLStatsWithProbability):
 
     def calculate_probability_relative_to(self, other_query_url_mapping, query='*', url='*', r_c_q_u=0.0, head_list=None):
         other_query = other_query_url_mapping[query]
-        other_url = other_query[url]
         head_list_query = head_list[query]
         # from Figure 5, line 16
         # broken down into separate steps to help clarity
@@ -59,10 +57,8 @@ class URLStatsForClient(URLStatsWithProbability):
         term_4 = head_list.tau * (head_list_query.tau - ((1 - head_list_query.tau) / (head_list_query.count - 1)))
         self.probability = (term_1 - term_2 - term_3) / term_4
 
-
     def calculate_variance_relative_to(self, other_query_url_mapping, query='*', url='*', r_c_q_u=0.0, head_list=None):
         other_query = other_query_url_mapping[query]
-        other_url = other_query[url]
         head_list_query = head_list[query]
         # from Figure 5, line 17
         # broken down into separate steps to help clarity
@@ -72,13 +68,13 @@ class URLStatsForClient(URLStatsWithProbability):
         term_2b = (1.0 - head_list.tau) / (head_list.count - 1.0) / head_list_query.count
         term_2c = (head_list.tau - head_list.tau * head_list_query.tau) / (head_list_query.count - 1.0)
         term_2d = r_c_q_u * (head_list.count - 2.0 + head_list.tau) / (head_list.count * head_list.tau - 1.0)
-        term2 = term_2a * (term_2b - term_2c) * term_2d
+        term_2 = term_2a * (term_2b - term_2c) * term_2d
         # note t1 / t2 / t3 here instead of the equivalent t1 / (t2 * t3)
-        term3a = (1.0 - head_list.tau) / (head_list.count - 1.0) / head_list_query.count
-        term3b = pow((head_list.tau - head_list.tau * head_list_query.tau) / (head_list_query.count - 1.0), 2)
-        term3 = (term3a - term3b) * other_query.variance
-        term4 = 1.0 / pow(head_list.tau, 2) / pow(head_list_query.tau - ((1.0 - head_list_query.tau)/(head_list_query.count - 1.0)), 2)
-        self.variance = (term1 + term2 + term3) * term4
+        term_3a = (1.0 - head_list.tau) / (head_list.count - 1.0) / head_list_query.count
+        term_3b = pow((head_list.tau - head_list.tau * head_list_query.tau) / (head_list_query.count - 1.0), 2)
+        term_3 = (term_3a - term_3b) * other_query.variance
+        term_4 = 1.0 / pow(head_list.tau, 2) / pow(head_list_query.tau - ((1.0 - head_list_query.tau)/(head_list_query.count - 1.0)), 2)
+        self.variance = (term_1 + term_2 + term_3) * term_4
 
 
 # --------------------------------------------------------------------------------------------------------
@@ -122,6 +118,7 @@ class URLStatsMappingForClient(URLStatsMapping):
 
             # from Figure 5, line 14
             for url in head_list[query]:
+                other_url = other_query_url_mapping[query][url]
                 # Figure 5, line 15
                 r_c_q_u = other_url.count / other_query_url_mapping.count  # TODO: rename
                 # Figure 5, line 16 implemented in the

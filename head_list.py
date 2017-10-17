@@ -16,7 +16,6 @@ from configman import (
 )
 
 from blender.in_memory_structures import (
-    URLCounter,
     URLStatsMapping,
     QueryURLMapping
 )
@@ -177,8 +176,3 @@ class HeadList(QueryURLMapping):
     def load(self):
         # populate a HeadList from a json file
         pass
-
-
-
-
-

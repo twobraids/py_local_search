@@ -29,13 +29,10 @@ from numpy.random import (
 )
 
 
-
-
 # --------------------------------------------------------------------------------------------------------
 # 3rd Level Structures
 #     Contains a single url's stats
 #     see constructor for attributes
-
 class URLCounter(RequiredConfig):
     """Lowest level of the nested mappings. This is the data associated with a URL.
     This data structure will likely be modified to include page title and excerpt

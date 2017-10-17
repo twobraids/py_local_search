@@ -129,23 +129,35 @@ required_config.add_aggregation(
 
 default_data_structures = {
     "head_list_db": {  # used for the preliminary_head_list & head_list
+        # level 1
         "headlist_class": "blender.head_list.HeadList",
+        # level 2
         "url_mapping_class": "blender.head_list.HeadListURLStatsMapping",
+        # level 3
         "url_stats_class": "blender.in_memory_structures.URLStatsWithProbabity"
     },
     "optin_db": {  # used for the optin_database_s & optin_database_t
-        "optin_db_class": "blender.head_list.QueryURLMappingClass",
+        # level 1
+        "optin_db_class": "blender.head_list.QueryURLMapping",
+        # level 2
         "url_mapping_class": "blender.in_memory_structures.URLStatsMapping",
+        # level 3
         "url_stats_class": "blender.in_memory_structures.URLStatsWithProbabity"
     },
-    "client_db": {
+    "client_db": {  # client_db
+        # level 1
         "client_db_class": "blender.client_structures.QueryUrlMappingForClient",
+        # level 2
         "url_mapping_class": "blender.client_structures.URLStatsMapping",
+        # level 3
         "url_stats_class": "blender.client_structures.URLStatsWithProbabity"
     },
-    "final_db": {
-        "client_db_class": "blender.head_list.QueryUrlMappingForClient",
+    "final_db": {   # final_db
+        # level 1
+        "client_db_class": "blender.in_memory_structures.QueryURLMapping",
+        # level 2
         "url_mapping_class": "blender.in_memory_structures.URLStatsMapping",
+        # level 3
         "url_stats_class": "blender.final_structures.URLStatsWithProbabity"
     },
 }
@@ -235,9 +247,11 @@ def blend_probabilities(config, optin_probabilities, client_probabilities):
         config.final_probabilies_db
     )
     for query, url in optin_probabilities.iter_records():
-        final_probabilities[query][url].calculate_probability(
-            optin_probabilities[query][url],
-            client_probabilities[query][url]
+        final_probabilities[query][url].calculate_probability_relative_to(
+            client_probabilities,
+            query=query,
+            url=url,
+            head_list=optin_probabilities,
         )
 
     return final_probabilities
