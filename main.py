@@ -13,28 +13,36 @@ from configman import (
 
 required_config = Namespace()
 
-required_config.namespace('opt_in_db')
-required_config.opt_in_db.add_option(
+required_config.namespace('optin_db')
+required_config.optin_db.add_option(
     name="optin_db_class",
-    default="blender.in_memory_structures.QueryURLMappingClass",
+    default="blender.in_memory_structures.QueryURLMapping",
     from_string_converter=class_converter,
     doc="dependency injection of a class to serve as non-headlist <q, u> databases"
 )
 
 required_config.namespace('head_list_db')
 required_config.head_list_db.add_option(
-    name="headlist_class",
-    default="blender.optin_structures.HeadList",
+    name="head_list_class",
+    default="blender.head_list.HeadList",
     from_string_converter=class_converter,
     doc="dependency injection of a class to serve as the HeadList"
 )
 
-required_config.namespace('final_probabilies_db')
-required_config.head_list_db.add_option(
-    name="final_probabilites_db_class",
-    default="blender.optin_structures.HeadList",
+required_config.namespace('client_db')
+required_config.client_db.add_option(
+    name="client_db_class",
+    default="blender.in_memory_structures.QueryURLMapping",
     from_string_converter=class_converter,
-    doc="dependency injection of a class to serve as the HeadList"
+    doc="dependency injection of a class to serve as the Optin Database"
+)
+
+required_config.namespace('final_probabilies_db')
+required_config.final_probabilies_db.add_option(
+    name="final_probabilites_db_class",
+    default="blender.head_list.HeadList",
+    from_string_converter=class_converter,
+    doc="dependency injection of a class to serve final probability vector"
 )
 
 
@@ -73,31 +81,31 @@ required_config.add_option(
 # therefore be calculated at program initialization time.
 required_config.add_aggregation(
     "epsilon_prime",  # Figure 6 LocalAlg line 2
-    lambda config: config.epsilon / config.m_c
+    lambda config, local_config, arg: config.epsilon / config.m_c
 )
 # because configman cannot guarantee the order of initialization of these
 # aggregations, they cannot depend on each other.  That's why each has
 # been rewritten from the original definitions in Figure 6 lines 2-3
 required_config.add_aggregation(
     "epsilon_prime_q",  # Figure 6 LocalAlg line 3
-    lambda config: config.f_c * config.epsilon / config.m_c
+    lambda config, local_config, arg: config.f_c * config.epsilon / config.m_c
 )
 required_config.add_aggregation(
     "epsilon_prime_u",  # Figure 6 LocalAlg line 3
-    lambda config: (config.epsilon / config.m_c) - (config.f_c * config.epsilon / config.m_c)
+    lambda config, local_config, arg: (config.epsilon / config.m_c) - (config.f_c * config.epsilon / config.m_c)
 )
 
 required_config.add_aggregation(
     "delta_prime",  # Figure 6 LocalAlg line 2
-    lambda config: config.delta / config.m_c
+    lambda config, local_config, arg: config.delta / config.m_c
 )
 required_config.add_aggregation(
     "delta_prime_q",  # Figure 6 LocalAlg line 3
-    lambda config: config.f_c * config.delta / config.m_c
+    lambda config, local_config, arg: config.f_c * config.delta / config.m_c
 )
 required_config.add_aggregation(
     "delta_prime_u",  # Figure 6 LocalAlg line 3
-    lambda config: (config.delta / config.m_c) - (config.f_c * config.delta / config.m_c)
+    lambda config, local_config, arg: (config.delta / config.m_c) - (config.f_c * config.delta / config.m_c)
 )
 
 
@@ -117,11 +125,11 @@ required_config.add_aggregation(
 # "optin_structures.QueryURLMappingClass" which is keyed by the query.
 #
 # optin_db['some query'] returns an instance of the next level of the
-# structure, an instance of "in_memory_structures.URLStatsMappingClass".
+# structure, an instance of "in_memory_structures.URLStatsMapping".
 # This is itself a mapping which is keyed by url.
 #
 # optin_db['some query']['some/url'] returns an instance of a url
-# stats object, "optin_structures.URLStatsForOptin".  This final
+# stats object, "in_memory_structures.URLStatsWithProbability".  This final
 # lowest level object contains stats and methods for individual urls.
 #
 # this section consolidates the declaration of the mapping structures into
@@ -130,19 +138,19 @@ required_config.add_aggregation(
 default_data_structures = {
     "head_list_db": {  # used for the preliminary_head_list & head_list
         # level 1
-        "headlist_class": "blender.head_list.HeadList",
+        "head_list_class": "blender.head_list.HeadList",
         # level 2
         "url_mapping_class": "blender.head_list.HeadListURLStatsMapping",
         # level 3
-        "url_stats_class": "blender.in_memory_structures.URLStatsWithProbabity"
+        "url_stats_class": "blender.in_memory_structures.URLStatsWithProbability"
     },
     "optin_db": {  # used for the optin_database_s & optin_database_t
         # level 1
-        "optin_db_class": "blender.head_list.QueryURLMapping",
+        "optin_db_class": "blender.in_memory_structures.QueryURLMapping",
         # level 2
         "url_mapping_class": "blender.in_memory_structures.URLStatsMapping",
         # level 3
-        "url_stats_class": "blender.in_memory_structures.URLStatsWithProbabity"
+        "url_stats_class": "blender.in_memory_structures.URLStatsWithProbability"
     },
     "client_db": {  # client_db
         # level 1
@@ -150,15 +158,15 @@ default_data_structures = {
         # level 2
         "url_mapping_class": "blender.client_structures.URLStatsMapping",
         # level 3
-        "url_stats_class": "blender.client_structures.URLStatsWithProbabity"
+        "url_stats_class": "blender.client_structures.URLStatsWithProbability"
     },
-    "final_db": {   # final_db
+    "final_probabilies_db": {   # final_probabilies_db
         # level 1
-        "client_db_class": "blender.in_memory_structures.QueryURLMapping",
+        "final_probabilites_db_class": "blender.in_memory_structures.QueryURLMapping",
         # level 2
         "url_mapping_class": "blender.in_memory_structures.URLStatsMapping",
         # level 3
-        "url_stats_class": "blender.final_structures.URLStatsWithProbabity"
+        "url_stats_class": "blender.final_structures.URLStatsWithProbability"
     },
 }
 
@@ -177,7 +185,7 @@ def create_preliminary_headlist(config, optin_database_s):
         config -
         optin_database_s -
     """
-    preliminary_head_list = config.head_list_db.headlist_class(config.head_list_db)
+    preliminary_head_list = config.head_list_db.head_list_class(config.head_list_db)
     preliminary_head_list.create_headlist(optin_database_s)
 
     return preliminary_head_list
@@ -293,8 +301,8 @@ if __name__ == "__main__":
     )
 
     # create & read optin_database_s
-    optin_database_s = config.opt_in_db.optin_db_class(
-        config.opt_in_db
+    optin_database_s = config.optin_db.optin_db_class(
+        config.optin_db
     )
     # optin_database_s.load("loadlocation_s")
 
@@ -305,8 +313,8 @@ if __name__ == "__main__":
     )
 
     # create & read optin_database_t
-    optin_database_t = config.opt_in_db.optin_db_class(
-        config.opt_in_db
+    optin_database_t = config.optin_db.optin_db_class(
+        config.optin_db
     )
     # optin_database_t.load("loadlocation_t")
 

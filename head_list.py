@@ -76,11 +76,11 @@ class HeadList(QueryURLMapping):
     )
     required_config.add_aggregation(
         "b_s",  # from Figure #3, line 6
-        lambda config: 2.0 * config.m_o / config.epsilon
+        lambda config, local_config, arg: 2.0 * config.m_o / config.epsilon
     )
     required_config.add_aggregation(
         "tau",  # from Figure #3, line 7
-        lambda config: (
+        lambda config, local_config, arg: (
             (2.0 * config.m_o / config.epsilon)
             *
             (ln(exp(config.epsilon/2.0) + config.m_o - 1.0) - ln(config.delta))
@@ -88,7 +88,7 @@ class HeadList(QueryURLMapping):
     )
     required_config.add_aggregation(
         "b_t",  # from Figure #4, line 9 - notice same definition as "b_s"
-        lambda config: 2.0 * config.m_o / config.epsilon
+        lambda config, local_config, arg: 2.0 * config.m_o / config.epsilon
     )
 
     def __init__(self, config):

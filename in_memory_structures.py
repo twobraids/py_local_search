@@ -88,7 +88,7 @@ class URLStatsMapping(MutableMapping, RequiredConfig):
     required_config = Namespace()
     required_config.add_option(
         name="url_stats_class",
-        default="blender.optin_structures.URLStatsForOptin",
+        default="blender.in_memory_structures.URLStatsWithProbability",
         from_string_converter=class_converter,
         doc="dependency injection of a class to represent statistics for URLs"
     )
@@ -154,7 +154,7 @@ class QueryURLMapping(MutableMapping, RequiredConfig):
     required_config = Namespace()
     required_config.add_option(
         name="url_mapping_class",
-        default="blender.in_memory_structures.URLStatsMappingClass",
+        default="blender.in_memory_structures.URLStatsMapping",
         from_string_converter=class_converter,
         doc="dependency injection of a class to represent a mapping of URLs to URL stats objects"
     )

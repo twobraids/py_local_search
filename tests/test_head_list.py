@@ -6,6 +6,9 @@ from mock import (
 from collections import (
     Mapping
 )
+from configman import (
+    configuration,
+)
 from configman.dotdict import (
     DotDict,
     DotDictWithAcquisition
@@ -22,8 +25,16 @@ from blender.in_memory_structures import (
     QueryURLMapping
 )
 from blender.main import (
+    required_config,
+    default_data_structures,
     create_preliminary_headlist,
     estimate_optin_probabilities
+)
+
+from blender.tests.synthetic_data import (
+    standard_constants,
+    load_tiny_data,
+    load_small_data
 )
 
 
@@ -56,77 +67,23 @@ class TestHeadListURLStatsMapping(TestCase):
 
 
 class TestHeadList(TestCase):
-    def _create_optin_db_01(self, config):
-        q_u_db = QueryURLMapping(config)
-        q_u_pairs = [
-            ('q1', 'q1u1', 10),
-            ('q2', 'q2u1', 10),
-            ('q2', 'q2u2', 20),
-            ('q3', 'q3u1', 30),
-            ('q4', 'q4u1', 99),
-            ('q4', 'q4u2', 99),
-            ('q5', 'q5u1', 10),
-            ('q5', 'q5u2', 20),
-            ('q6', 'q6u1', 99),
-            ('q6', 'q6u2', 10),
-            ('q7', 'q7u1', 99),
-            ('q7', 'q7u2', 99),
-        ]
-        for q, u, c in q_u_pairs:
-            for i in range(c):
-                q_u_db.add((q, u))
-        return q_u_db
-
-    def _create_optin_db_02(self, config):
-        q_u_db = QueryURLMapping(config)
-        q_u_pairs = [
-            ('q1', 'q1u1', 10),
-            ('q2', 'q2u1', 10),
-            ('q2', 'q2u2', 20),
-            ('q3', 'q3u1', 30),
-            ('q4', 'q4u1', 100),
-            ('q4', 'q4u2', 100),
-            ('q5', 'q5u1', 10),
-            ('q5', 'q5u2', 20),
-            ('q6', 'q6u1', 100),
-            ('q6', 'q6u2', 10),
-            ('q7', 'q7u1', 100),
-            ('q7', 'q7u2', 100),
-            ('q8', 'q8u1', 50),
-            ('q8', 'q8u2', 50),
-            ('q8', 'q8u3', 50),
-            ('q8', 'q8u4', 50),
-            ('q8', 'q8u5', 50),
-            ('q8', 'q8u6', 50),
-            ('q8', 'q8u7', 45),
-            ('q8', 'q8u8', 45),
-        ]
-        for q, u, c in q_u_pairs:
-            for i in range(c):
-                q_u_db.add((q, u))
-        return q_u_db
-
     def test_creation(self):
-        config = DotDictWithAcquisition()
+        config = configuration(
+            definition_source=required_config,
+            values_source_list=[
+                default_data_structures,
+                standard_constants,
+            ]
+        )
 
-        config.epsilon = 4.0
-        config.delta = 0.000001
-        config.m_o = 10
-        config.m = 5
+        self.assertEqual(config.head_list_db.b_s, 5.0)
+        self.assertEqual(config.head_list_db.tau, 83.06062179501248)
+        self.assertEqual(config.head_list_db.head_list_class, HeadList)
+        self.assertEqual(config.optin_db.optin_db_class, QueryURLMapping)
 
-        config.opt_in_db = DotDictWithAcquisition()
-        config.opt_in_db.headlist_class = QueryURLMapping
-        config.opt_in_db.url_stats_class = URLStatsWithProbability
-        config.opt_in_db.url_mapping_class = URLStatsMapping
+        q_u_db = config.optin_db.optin_db_class(config.optin_db)
 
-        config.head_list_db = DotDictWithAcquisition()
-        config.head_list_db.headlist_class = HeadList
-        config.head_list_db.url_stats_class = URLStatsWithProbability
-        config.head_list_db.url_mapping_class = URLStatsMapping
-        config.head_list_db.b_s = 5.0
-        config.head_list_db.tau = 83.06062179501248
-
-        optin_db = self._create_optin_db_01(config.opt_in_db)
+        optin_db = load_tiny_data(q_u_db)
 
         head_list = create_preliminary_headlist(config.head_list_db, optin_db)
 
@@ -155,27 +112,15 @@ class TestHeadList(TestCase):
         # to test the resultant values in the equations that use laplace
         laplace_mock.return_value = 1
 
-        config = DotDictWithAcquisition()
+        config = configuration(
+            definition_source=required_config,
+            values_source_list=[
+                default_data_structures,
+                standard_constants,
+            ]
+        )
 
-        config.epsilon = 4.0
-        config.delta = 0.000001
-        config.m_o = 10
-        config.m = 5
-
-        config.opt_in_db = DotDictWithAcquisition()
-        config.opt_in_db.optin_db_class = QueryURLMapping
-        config.opt_in_db.url_stats_class = URLStatsWithProbability
-        config.opt_in_db.url_mapping_class = URLStatsMapping
-
-        config.head_list_db = DotDictWithAcquisition()
-        config.head_list_db.headlist_class = HeadList
-        config.head_list_db.url_mapping_class = HeadListURLStatsMapping
-        config.head_list_db.url_stats_class = URLStatsWithProbability
-        config.head_list_db.b_s = 5.0
-        config.head_list_db.b_t = 5.0
-        config.head_list_db.tau = 83.06062179501248
-
-        optin_db = self._create_optin_db_02(config.opt_in_db)
+        optin_db = self._create_optin_db_02(config.optin_db)
         head_list = create_preliminary_headlist(config.head_list_db, optin_db)
 
         optin_db.subsume_those_not_present_in(head_list)
@@ -203,27 +148,20 @@ class TestHeadList(TestCase):
         # to test the resultant values in the equations that use laplace
         laplace_mock.return_value = 1
 
-        config = DotDictWithAcquisition()
+        constants_overridden = {
+            "head_list_db.m": 2,
+        }
 
-        config.epsilon = 4.0
-        config.delta = 0.000001
-        config.m_o = 10
-        config.m = 2
+        config = configuration(
+            definition_source=required_config,
+            values_source_list=[
+                default_data_structures,
+                standard_constants,
+                constants_overridden,
+            ]
+        )
 
-        config.opt_in_db = DotDictWithAcquisition()
-        config.opt_in_db.optin_db_class = QueryURLMapping
-        config.opt_in_db.url_stats_class = URLStatsWithProbability
-        config.opt_in_db.url_mapping_class = URLStatsMapping
-
-        config.head_list_db = DotDictWithAcquisition()
-        config.head_list_db.headlist_class = HeadList
-        config.head_list_db.url_mapping_class = HeadListURLStatsMapping
-        config.head_list_db.url_stats_class = URLStatsWithProbability
-        config.head_list_db.b_s = 5.0
-        config.head_list_db.b_t = 5.0
-        config.head_list_db.tau = 83.06062179501248
-
-        optin_db = self._create_optin_db_02(config.opt_in_db)
+        optin_db = self._create_optin_db_02(config.optin_db)
         head_list = create_preliminary_headlist(config.head_list_db, optin_db)
         self.assertTrue('*' in head_list)
         self.assertTrue('*' not in optin_db)
@@ -279,29 +217,21 @@ class TestHeadList(TestCase):
         # to test the resultant values in the equations that use laplace
         laplace_mock.return_value = 1
 
-        config = DotDictWithAcquisition()
+        constants_overridden = {
+            "head_list_db.m": 2,
+        }
 
-        config.epsilon = 4.0
-        config.delta = 0.000001
-        config.m_o = 10
-        config.m = 2
+        config = configuration(
+            definition_source=required_config,
+            values_source_list=[
+                default_data_structures,
+                standard_constants,
+                constants_overridden,
+            ]
+        )
 
-        config.opt_in_db = DotDictWithAcquisition()
-        config.opt_in_db.optin_db_class = QueryURLMapping
-        config.opt_in_db.url_stats_class = URLStatsWithProbability
-        config.opt_in_db.url_mapping_class = URLStatsMapping
-
-        config.head_list_db = DotDictWithAcquisition()
-        config.head_list_db.headlist_class = HeadList
-        config.head_list_db.url_mapping_class = HeadListURLStatsMapping
-        config.head_list_db.url_stats_class = URLStatsWithProbability
-        config.head_list_db.b_s = 5.0
-        config.head_list_db.b_t = 5.0
-        config.head_list_db.tau = 83.06062179501248
-
-        optin_db = self._create_optin_db_02(config.opt_in_db)
+        optin_db = self._create_optin_db_02(config.optin_db)
         head_list = create_preliminary_headlist(config.head_list_db, optin_db)
-        assert config.m
         optin_db.subsume_those_not_present_in(head_list)
         head_list.calculate_probabilities_relative_to(optin_db)
         head_list.subsume_entries_beyond_max_size()
