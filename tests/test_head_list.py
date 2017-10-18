@@ -120,7 +120,9 @@ class TestHeadList(TestCase):
             ]
         )
 
-        optin_db = self._create_optin_db_02(config.optin_db)
+        optin_db = load_small_data(
+            config.optin_db.optin_db_class(config.optin_db)
+        )
         head_list = create_preliminary_headlist(config.head_list_db, optin_db)
 
         optin_db.subsume_those_not_present_in(head_list)
@@ -161,7 +163,9 @@ class TestHeadList(TestCase):
             ]
         )
 
-        optin_db = self._create_optin_db_02(config.optin_db)
+        optin_db = load_small_data(
+            config.optin_db.optin_db_class(config.optin_db)
+        )
         head_list = create_preliminary_headlist(config.head_list_db, optin_db)
         self.assertTrue('*' in head_list)
         self.assertTrue('*' not in optin_db)
@@ -230,7 +234,9 @@ class TestHeadList(TestCase):
             ]
         )
 
-        optin_db = self._create_optin_db_02(config.optin_db)
+        optin_db = load_small_data(
+            config.optin_db.optin_db_class(config.optin_db)
+        )
         head_list = create_preliminary_headlist(config.head_list_db, optin_db)
         optin_db.subsume_those_not_present_in(head_list)
         head_list.calculate_probabilities_relative_to(optin_db)
