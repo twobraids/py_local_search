@@ -26,6 +26,7 @@ from blender.in_memory_structures import (
 #     Contains a single url's stats
 #     see constructor for attributes
 
+# none defined - this means that the classes from in_memory_structures are likely to be used
 
 # --------------------------------------------------------------------------------------------------------
 # 2nd Level Structures
@@ -170,7 +171,7 @@ class HeadList(QueryURLMapping):
             pass
 
     def save(self):
-        # the ought to create a json file with the probabilities and varance data
+        # this ought to create a json file with the probabilities and variance data
         pass
 
     def load(self):

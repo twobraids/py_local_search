@@ -10,11 +10,10 @@ from numpy.random import (
 def local_alg(config, head_list, local_query_url_iter):
     """to be used in testing as in production, it will be executed by the client.  It should, therefore,
     be written in Javascript or, even better, Rust"""
-    kappa = head_list.count
     tau = (
-        (exp(config.epsilon_prime_q) + (config.delta_prime_q / 2.0) * (kappa - 1))
+        (exp(config.epsilon_prime_q) + (config.delta_prime_q / 2.0) * (head_list.count - 1))
         /
-        (exp(config.epsilon_prime_q) + kappa - 1)
+        (exp(config.epsilon_prime_q) + head_list.count - 1)
     )
     for a_query, a_url in local_query_url_iter():
         if a_query not in head_list:

@@ -308,12 +308,12 @@ if __name__ == "__main__":
         values_source_list=[
             # setup a structure of overriding hierarchy for the
             # sources of configuration information.
-            # each source will override values from sources lower
+            # each source will override values from sources higher
             # in the list
-            command_line,
-            configuration_file,
+            default_data_structures,
             environment,
-            default_data_structures
+            configuration_file,
+            command_line,
         ]
     )
 
