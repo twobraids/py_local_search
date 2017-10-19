@@ -37,8 +37,8 @@ required_config.client_db.add_option(
     doc="dependency injection of a class to serve as the Optin Database"
 )
 
-required_config.namespace('final_probabilies_db')
-required_config.final_probabilies_db.add_option(
+required_config.namespace('final_probabilities')
+required_config.final_probabilities.add_option(
     name="final_probabilites_db_class",
     default="blender.head_list.HeadList",
     from_string_converter=class_converter,
@@ -114,26 +114,33 @@ required_config.add_aggregation(
 # The Blender paper refers to several data structures as databases and vectors.
 # However, digging deeper there is really only one data structure: a mapping of
 # mappings to statistical data. The first mapping level uses queries as the key.
-# The second level of mapping uses urls for a key. The lowest level values are
-# just a tuple of stats.
+# Comments in this code will often refer to this level as "Top Level Structure"
+# The second level of mapping uses urls for a key ("2nd Level Structure"). The
+# lowest level values are just a tuple of stats ("3rd Level Structure").
 #
 # This implementation uses classes to represent each level of the mapping as well
 # as the lowest level value.   The implementation classes vary based on the
 # role that the data structure represents.
 #
-# For example, the "optin_db" is represented by the
-# "optin_structures.QueryURLMappingClass" which is keyed by the query.
+# For example, the "optin_db" is represented by using the Top Level Structure,
+# "optin_structures.QueryURLMappingClass", which is keyed by the query.
 #
-# optin_db['some query'] returns an instance of the next level of the
+# optin_db['some query'] returns an instance of the 2nd level of the
 # structure, an instance of "in_memory_structures.URLStatsMapping".
 # This is itself a mapping which is keyed by url.
 #
-# optin_db['some query']['some/url'] returns an instance of a url
+# optin_db['some query']['some/url'] returns an instance of the 3rd level, a url
 # stats object, "in_memory_structures.URLStatsWithProbability".  This final
 # lowest level object contains stats and methods for individual urls.
 #
 # this section consolidates the declaration of the mapping structures into
 # one place.
+#
+# This structure will be given to the configuration system as the defaults for
+# each use case.  The configuration system enables dependency injection.  Any
+# of these values can be changed at program initialization time through command
+# line options, environment variables or configuration file (in 'ini', 'conf' or
+# 'json' form)
 
 default_data_structures = {
     "head_list_db": {  # used for the preliminary_head_list & head_list
@@ -160,7 +167,7 @@ default_data_structures = {
         # level 3
         "url_stats_class": "blender.client_structures.URLStatsWithProbability"
     },
-    "final_probabilies_db": {   # final_probabilies_db
+    "final_probabilities": {   # final_probabilities
         # level 1
         "final_probabilites_db_class": "blender.in_memory_structures.QueryURLMapping",
         # level 2
@@ -229,6 +236,11 @@ def estimate_optin_probabilities(preliminary_head_list, optin_database_t):
 
 # EstimateClientProbabilities
 def estimate_client_probabilities(config, head_list, client_database):
+    """
+    Parameters:
+        head_list -
+        client_database -
+    """
     # lines 1-3 from Figure 5 have been executed at the end of the
     # function "estimate_optin_probabilities"
 
@@ -247,12 +259,17 @@ def estimate_client_probabilities(config, head_list, client_database):
 
 # Blender merge
 def blend_probabilities(config, optin_probabilities, client_probabilities):
+    """
+    Parameters:
+        optin_probabilities -
+        client_probabilities -
+    """
     # the original code called for the optin_probabilities and the head_list as separate
     # entities.  They're much more easily stored in the same data structure to avoid a lot
     # duplicated keys and values.
 
-    final_probabilities = config.final_probabilies_db.final_probabilites_db_class(
-        config.final_probabilies_db
+    final_probabilities = config.final_probabilities.final_probabilites_db_class(
+        config.final_probabilities
     )
     for query, url in optin_probabilities.iter_records():
         final_probabilities[query][url].calculate_probability_relative_to(
