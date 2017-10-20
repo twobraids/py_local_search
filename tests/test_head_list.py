@@ -1,18 +1,28 @@
 from unittest import TestCase
 from mock import (
-    MagicMock,
     patch
 )
 from collections import (
     Mapping
 )
+
+import jsonpickle
+
 from configman import (
     configuration,
 )
 from configman.dotdict import (
     DotDict,
-    DotDictWithAcquisition
+    DotDictWithAcquisition,
 )
+
+
+@jsonpickle.handlers.register(DotDictWithAcquisition, base=True)
+class DotDictHandler(jsonpickle.handlers.BaseHandler):
+    def flatten(self, obj, data):
+        pass
+    def restore(self, obj):
+        pass
 
 from blender.head_list import (
     HeadList,
@@ -20,15 +30,12 @@ from blender.head_list import (
 )
 from blender.in_memory_structures import (
     URLCounter,
-    URLStatsWithProbability,
-    URLStatsMapping,
     QueryURLMapping
 )
 from blender.main import (
     required_config,
     default_data_structures,
     create_preliminary_headlist,
-    estimate_optin_probabilities
 )
 
 from blender.tests.synthetic_data import (
@@ -248,3 +255,39 @@ class TestHeadList(TestCase):
             url_stats = head_list[query][url]
             # TODO: how do we determine that these values are correct?
             print(query, url, url_stats.count, url_stats.probability, url_stats.variance)
+
+    def test_round_trip_json(self):
+        config = configuration(
+            definition_source=required_config,
+            values_source_list=[
+                default_data_structures,
+                standard_constants,
+            ]
+        )
+
+        optin_db = load_small_data(
+            config.optin_db.optin_db_class(config.optin_db)
+        )
+
+        frozen = jsonpickle.encode(optin_db)
+        equivalent = jsonpickle.decode(frozen)
+        frozen2 = jsonpickle.encode(equivalent)
+        self.assertEqual(frozen, frozen2)
+
+        head_list = create_preliminary_headlist(config.head_list_db, optin_db)
+        optin_db.subsume_those_not_present_in(head_list)
+        head_list.calculate_probabilities_relative_to(optin_db)
+        head_list.subsume_entries_beyond_max_size()
+
+        head_list.calculate_variance_relative_to(optin_db)
+
+        frozen = jsonpickle.encode(head_list)
+        equivalent = jsonpickle.decode(frozen)
+        frozen2 = jsonpickle.encode(equivalent)
+        self.assertEqual(frozen, frozen2)
+
+        frozen = jsonpickle.encode(head_list)
+        equivalent = jsonpickle.decode(frozen)
+        frozen2 = jsonpickle.encode(equivalent)
+        self.assertEqual(frozen, frozen2)
+

@@ -257,6 +257,7 @@ def estimate_client_probabilities(config, head_list, client_database):
 
     return probability_varience_vectors
 
+
 # Blender merge
 def blend_probabilities(config, optin_probabilities, client_probabilities):
     """

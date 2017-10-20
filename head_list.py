@@ -170,10 +170,10 @@ class HeadList(QueryURLMapping):
         for query in self.keys():
             pass
 
-    def save(self):
-        # this ought to create a json file with the probabilities and variance data
-        pass
+    def __getstate__(self, key_list=None):
+        # for use by jsonpickle
+        if key_list is None:
+            key_list = list()
+        key_list.append('probability_sorted_index')
+        return super(HeadList, self).__getstate__(key_list)
 
-    def load(self):
-        # populate a HeadList from a json file
-        pass

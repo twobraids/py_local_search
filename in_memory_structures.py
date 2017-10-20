@@ -29,11 +29,26 @@ from numpy.random import (
 )
 
 
+class JsonPickleBase(object):
+    # for use by jsonpickle
+    def __getstate__(self, key_list=None):
+        if key_list is None:
+            key_list = list()
+        key_list.append('config')
+        state = self.__dict__.copy()
+        for key in key_list:
+            try:
+                del state[key]
+            except KeyError:
+                pass
+        return state
+
+
 # --------------------------------------------------------------------------------------------------------
 # 3rd Level Structures
 #     Contains a single url's stats
 #     see constructor for attributes
-class URLCounter(RequiredConfig):
+class URLCounter(JsonPickleBase):
     """Lowest level of the nested mappings. This is the data associated with a URL.
     This data structure will likely be modified to include page title and excerpt
     at sometime in the future.
@@ -49,6 +64,7 @@ class URLCounter(RequiredConfig):
         self.count += other_URLStatsCounter.count
 
 
+
 class URLStatsWithProbability(URLCounter):
     def __init__(self, config, count=0):
         super(URLStatsWithProbability, self).__init__(config, count)
@@ -58,6 +74,10 @@ class URLStatsWithProbability(URLCounter):
     def subsume(self, other_URLStatsCounter):
         super(URLStatsWithProbability, self).subsume(other_URLStatsCounter)
         self.probability += other_URLStatsCounter.probability
+        # varaince is not something that can be updated by summation.  Refrain from
+        # setting it here to allow for calculating it on demand at a future time
+        # (for example, see the 2nd level class blender.head_list_db.HeadListURLStatsMapping
+        # and the method calculate_probability_relative_to)
         # self.variance   # take no action, do it later
 
     def calculate_probability_relative_to(self, other_query_url_mapping, query="*", url="*", b=0.0, head_list=None):
@@ -81,7 +101,7 @@ class URLStatsWithProbability(URLCounter):
 #         urls are the key
 #         3rd Level structures as the value
 
-class URLStatsMapping(MutableMapping, RequiredConfig):
+class URLStatsMapping(MutableMapping, JsonPickleBase, RequiredConfig):
     """A mapping of URLs to URL stats classes.  The keys are URLs as strings and the values
     are instances of the class representing the URL data and stats.
     """
@@ -148,7 +168,7 @@ class URLStatsMapping(MutableMapping, RequiredConfig):
 #        queries serve as the key
 #        2nd Level structures as the value
 
-class QueryURLMapping(MutableMapping, RequiredConfig):
+class QueryURLMapping(MutableMapping, JsonPickleBase, RequiredConfig):
     """This is the top of the mappings of mappings. The keys are queries and the values are
     instances of a mapping of URLs to URL statistics"""
     required_config = Namespace()
@@ -220,3 +240,4 @@ class QueryURLMapping(MutableMapping, RequiredConfig):
 
     def __contains__(self, key):
         return key in self.queries_and_urls
+
