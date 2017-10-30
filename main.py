@@ -58,13 +58,13 @@ required_config.add_option(
 )
 required_config.add_option(
     "m_o",
-    default=1.0,
+    default=5.0,
     doc="maximum number of records per opt-in user",
 )
 
 required_config.add_option(
     "m_c",
-    default=1.0,
+    default=5.0,
     doc="maximum number of records per client user",
 )
 
@@ -109,7 +109,7 @@ required_config.add_aggregation(
 )
 
 
-# setup default data structures
+# declare the typse of the default data structures
 #
 # The Blender paper refers to several data structures as databases and vectors.
 # However, digging deeper there is really only one data structure: a mapping of
@@ -142,8 +142,8 @@ required_config.add_aggregation(
 # line options, environment variables or configuration file (in 'ini', 'conf' or
 # 'json' form)
 
-default_data_structures = {
-    "head_list_db": {  # used for the preliminary_head_list & head_list
+default_data_structures = {  # keyed by the use case
+    "head_list_db": {
         # level 1
         "head_list_class": "blender.head_list.HeadList",
         # level 2
@@ -151,7 +151,7 @@ default_data_structures = {
         # level 3
         "url_stats_class": "blender.in_memory_structures.URLStatsWithProbability"
     },
-    "optin_db": {  # used for the optin_database_s & optin_database_t
+    "optin_db": {
         # level 1
         "optin_db_class": "blender.in_memory_structures.QueryURLMapping",
         # level 2
@@ -159,7 +159,7 @@ default_data_structures = {
         # level 3
         "url_stats_class": "blender.in_memory_structures.URLStatsWithProbability"
     },
-    "client_db": {  # client_db
+    "client_db": {
         # level 1
         "client_db_class": "blender.client_structures.QueryUrlMappingForClient",
         # level 2
@@ -167,7 +167,7 @@ default_data_structures = {
         # level 3
         "url_stats_class": "blender.client_structures.URLStatsWithProbability"
     },
-    "final_probabilities": {   # final_probabilities
+    "final_probabilities": {
         # level 1
         "final_probabilites_db_class": "blender.in_memory_structures.QueryURLMapping",
         # level 2
@@ -307,10 +307,8 @@ if __name__ == "__main__":
     config = configuration(
         definition_source=required_config,
         values_source_list=[
-            # setup a structure of overriding hierarchy for the
-            # sources of configuration information.
-            # each source will override values from sources higher
-            # in the list
+            # create the overriding hierarchy for the sources of configuration.
+            # each source will override values from sources higher in the list
             default_data_structures,
             environment,
             configuration_file,
@@ -345,6 +343,7 @@ if __name__ == "__main__":
     client_database = config.client_db.client_db_class(
         config.client_db
     )
+    # client_database.load("loadlocation_client")
 
     client_stats = estimate_client_probabilities(
         config,
