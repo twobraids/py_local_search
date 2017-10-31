@@ -60,6 +60,10 @@ class HeadListURLStatsMapping(URLStatsMapping):
             # However, in that algorithm most of those values will be thrown away without being used.
             # We'll delay calculating them until we know which records we're keeping.
 
+    def print(self, indent):
+        print('{}tau={}'.format(' ' * indent, self.tau))
+        super(HeadListURLStatsMapping, self).print(indent)
+
 
 # --------------------------------------------------------------------------------------------------------
 # Top Level Structures -
@@ -164,6 +168,11 @@ class HeadList(QueryURLMapping):
         )
         for query in self.keys():
             self[query].calculate_tau()
+
+    def print(self, indent=0):
+        print('{}config.tau={}'.format(' ' * indent, self.config.tau))
+        print('{}tau={}'.format(' ' * indent, self.tau))
+        super(HeadList, self).print(indent)
 
     def export_for_client_distribution(self):
         # this ought to produce a json file without the probabilites and variance data

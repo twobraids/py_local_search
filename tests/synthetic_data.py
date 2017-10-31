@@ -6,12 +6,24 @@ def load_synthetic_data_set(data_set, db):
             db.add((q, u))
     return db
 
+minimal_constants = {
+    "epsilon": 1.0,
+    "delta": 0.000001,
+    "m_o": 1,
+    "head_list_db.m": 1,
+}
+
 standard_constants = {
     "epsilon": 4.0,
     "delta": 0.000001,
     "m_o": 10,
     "head_list_db.m": 5,
 }
+
+single_set = [
+    ('q1', 'q1u1', 30),
+]
+load_single_data = partial(load_synthetic_data_set, single_set)
 
 tiny_set = [
     ('q1', 'q1u1', 10),

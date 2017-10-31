@@ -65,6 +65,9 @@ class URLCounter(JsonPickleBase):
     def subsume(self, other_URLStatsCounter):
         self.count += other_URLStatsCounter.count
 
+    def print(self, indent=0):
+        print('{}count={}'.format(' ' * indent, self.count))
+
 
 
 class URLStatsWithProbability(URLCounter):
@@ -89,12 +92,18 @@ class URLStatsWithProbability(URLCounter):
         )
 
     def calculate_variance_relative_to(self, other_query_url_mapping, query='*', url='*', b_t=0.0):
+        print ('*****  {}'.format((self.probability * (1.0 - self.probability)) / (other_query_url_mapping.count - 1.0)))
+        print ('*****  {}'.format((2.0 * b_t * b_t) / (other_query_url_mapping.count * (other_query_url_mapping.count - 1.0))))
         self.variance = (
             (self.probability * (1.0 - self.probability)) / (other_query_url_mapping.count - 1.0)
             +
             (2.0 * b_t * b_t) / (other_query_url_mapping.count * (other_query_url_mapping.count - 1.0))
         )
 
+    def print(self, indent=0):
+        super(URLStatsWithProbability, self).print(indent)
+        print("{}prob={}".format(' ' * indent, self.probability))
+        print("{}vari={}".format(' ' * indent, self.variance))
 
 # --------------------------------------------------------------------------------------------------------
 # 2nd Level Structures
@@ -137,6 +146,15 @@ class URLStatsMapping(MutableMapping, JsonPickleBase, RequiredConfig):
     def add(self, url):
         self.urls[url].increment_count()
         self.count += 1
+
+    def print(self, indent):
+        print('{}count={}'.format(' ' * indent, self.count))
+        print('{}prob={}'.format(' ' * indent, self.probability))
+        print('{}vari={}'.format(' ' * indent, self.variance))
+        for url in self:
+            print('{}{}'.format(' ' * indent, url))
+            self[url].print(indent + 4)
+
 
     def __getitem__(self, query):
         return self.urls[query]
@@ -234,6 +252,11 @@ class QueryURLMapping(MutableMapping, JsonPickleBase, RequiredConfig):
                 record = json.loads(record_str)
                 self.add(record)
 
+    def print(self, indent=0):
+        print('{}count={}'.format(' ' * indent, self.count))
+        for query in self:
+            print('{}{}'.format(' ' * indent, query))
+            self[query].print(indent + 4)
 
 
     # this class implements the MuteableMapping Abstract Base Class.  These are the implementation of

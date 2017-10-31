@@ -48,7 +48,7 @@ required_config.final_probabilities.add_option(
 
 required_config.add_option(
     "epsilon",
-    default=4.0,
+    default=4.0,  # set from text, p11, 1st paragraph
     doc="epsilon",
 )
 required_config.add_option(
@@ -58,13 +58,13 @@ required_config.add_option(
 )
 required_config.add_option(
     "m_o",
-    default=5.0,
+    default=1.0,
     doc="maximum number of records per opt-in user",
 )
 
 required_config.add_option(
     "m_c",
-    default=5.0,
+    default=1.0,
     doc="maximum number of records per client user",
 )
 
@@ -177,7 +177,7 @@ default_data_structures = {  # keyed by the use case
         # level 2
         "url_mapping_class": "blender.in_memory_structures.URLStatsMapping",
         # level 3
-        "url_stats_class": "blender.in_memory_structures.URLStatsWithProbability"
+        "url_stats_class": "blender.in_memory_structures.URLCounter"
     },
     "client_db": {
         # level 1
