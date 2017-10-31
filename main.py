@@ -75,6 +75,25 @@ required_config.add_option(
         "to reporting queries",
 )
 
+required_config.add_option(
+    "optin_database_s_filename",
+    default='optin_s.data',
+    doc="the pathname of the optin_database_s formated as [query, url] pairs"
+)
+
+required_config.add_option(
+    "optin_database_t_filename",
+    default='optin_t.data',
+    doc="the pathname of the optin_database_t json formated as [query, url] pairs"
+)
+
+required_config.add_option(
+    "client_database_filename",
+    default='client.data',
+    doc="the pathname of the client_database json formated as [query, url] pairs"
+)
+
+
 # the following are constants calculated in Figure 6 LocalAlg and then
 # referenced in EstimateClientProbabilities Figure 5. While they are
 # defined in functions, they really depend only on configuration and can
@@ -107,6 +126,7 @@ required_config.add_aggregation(
     "delta_prime_u",  # Figure 6 LocalAlg line 3
     lambda config, local_config, arg: (config.delta / config.m_c) - (config.f_c * config.delta / config.m_c)
 )
+
 
 
 # declare the typse of the default data structures
@@ -320,7 +340,7 @@ if __name__ == "__main__":
     optin_database_s = config.optin_db.optin_db_class(
         config.optin_db
     )
-    # optin_database_s.load("loadlocation_s")
+    optin_database_s.load(config.optin_database_s_filename)
 
     # create preliminary head list
     preliminary_head_list = create_preliminary_headlist(
@@ -332,7 +352,7 @@ if __name__ == "__main__":
     optin_database_t = config.optin_db.optin_db_class(
         config.optin_db
     )
-    # optin_database_t.load("loadlocation_t")
+    optin_database_t.load(config.optin_database_t_filename)
 
     head_list_for_distribution = estimate_optin_probabilities(
         preliminary_head_list,
@@ -343,7 +363,7 @@ if __name__ == "__main__":
     client_database = config.client_db.client_db_class(
         config.client_db
     )
-    # client_database.load("loadlocation_client")
+    client_database.load(config.client_database_filename)
 
     client_stats = estimate_client_probabilities(
         config,

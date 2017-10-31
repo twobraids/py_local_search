@@ -1,7 +1,8 @@
 from unittest import TestCase
 from mock import (
     MagicMock,
-    patch
+    patch,
+    mock_open
 )
 
 from collections import (
@@ -291,3 +292,30 @@ class TestQueryURLMappingClass(TestCase):
         self.assertTrue('*' in test_q_u_db)
         self.assertEqual(test_q_u_db['*']['*'].count, 8)
         self.assertTrue('u9' not in test_q_u_db['q4'])
+
+    @patch("builtins.open", new_callable=mock_open, read_data=
+        '["q1","u1"]\n'
+        '["q1","u2"]\n'
+        '["q2","u3"]\n'
+    )
+    def test_load(self, mocked_open):
+        mocked_open.return_value.__iter__ = lambda self:self
+        mocked_open.return_value.__next__ = lambda self: self.readline()
+
+        config = DotDict()
+        config.url_stats_class = URLCounter
+        config.url_mapping_class = URLStatsMapping
+        reference_q_u_db = QueryURLMapping(config)
+
+        reference_q_u_db.load("somefile")
+
+        self.assertEqual(reference_q_u_db.count, 3)
+        self.assertTrue("q1" in reference_q_u_db)
+        self.assertTrue("u1" in reference_q_u_db["q1"])
+        self.assertTrue("u2" in reference_q_u_db["q1"])
+        self.assertEqual(reference_q_u_db["q1"].count, 2)
+        self.assertTrue("q2" in reference_q_u_db)
+        self.assertTrue("u3" in reference_q_u_db["q2"])
+        self.assertEqual(reference_q_u_db["q2"].count, 1)
+
+

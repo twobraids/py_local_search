@@ -28,6 +28,8 @@ from numpy.random import (
     laplace
 )
 
+import json
+
 
 class JsonPickleBase(object):
     # for use by jsonpickle
@@ -219,6 +221,14 @@ class QueryURLMapping(MutableMapping, JsonPickleBase, RequiredConfig):
         for a_query, url_mapping in self.items():
             for a_url in url_mapping.keys():
                 yield a_query, a_url
+
+    def load(self, file_name):
+        with open(file_name, encoding='utf-8') as optin_data_source:
+            for record_str in optin_data_source:
+                record = json.loads(record_str)
+                self.add(record)
+
+
 
     # this class implements the MuteableMapping Abstract Base Class.  These are the implementation of
     # the required methods for that ABC.
