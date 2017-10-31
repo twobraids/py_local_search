@@ -201,6 +201,22 @@ class TestQueryURLMappingClass(TestCase):
         self.assertTrue(isinstance(q_u_db.queries_and_urls, Mapping))
         self.assertEqual(q_u_db.count, 0)
 
+    def test_append_star_values(self):
+        config = DotDict()
+        config.url_stats_class = URLCounter
+        config.url_mapping_class = URLStatsMapping
+        q_u_db = QueryURLMapping(config)
+        q_u_db.add(('a_query', 'a_url'))
+        q_u_db.append_star_values()
+
+        self.assertTrue('a_query' in q_u_db)
+        self.assertTrue('a_url' in q_u_db['a_query'])
+        self.assertTrue('*' in q_u_db['a_query'])
+        self.assertEqual(q_u_db.count, 1)
+        self.assertEqual(q_u_db['a_query'].count, 1)
+        self.assertEqual(q_u_db['*'].count, 0)
+
+
     def test_add(self):
         config = DotDict()
         config.url_stats_class = URLCounter
@@ -211,6 +227,7 @@ class TestQueryURLMappingClass(TestCase):
         self.assertTrue('a_query' in q_u_db)
         self.assertTrue('a_url' in q_u_db['a_query'])
         self.assertEqual(q_u_db.count, 1)
+        self.assertEqual(q_u_db['a_query'].count, 1)
 
         q_u_db.add(('a_query', 'a_url'))
         self.assertTrue('a_query' in q_u_db)

@@ -191,6 +191,12 @@ class QueryURLMapping(MutableMapping, JsonPickleBase, RequiredConfig):
         self.queries_and_urls = defaultdict(partial(self.config.url_mapping_class, self.config))
         self.count = 0
 
+    def append_star_values(self):
+        self['*'].touch('*')
+        for query in self.queries_and_urls:
+            self[query].touch('*')
+
+
     def add(self, q_u_tuple):
         """add a new <q, u> tuple to this collecton"""
         self.queries_and_urls[q_u_tuple[0]].add(q_u_tuple[1])
