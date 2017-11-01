@@ -88,7 +88,7 @@ class URLStatsWithProbability(URLCounter):
     def calculate_probability_relative_to(self, other_query_url_mapping, query="*", url="*", b=0.0, head_list=None):
         y = laplace(b)  # TODO: understand and select correct parameter
         self.probability = (
-            (other_query_url_mapping[query][url].count * y) / other_query_url_mapping.count
+            (other_query_url_mapping[query][url].count + y) / other_query_url_mapping.count
         )
 
     def calculate_variance_relative_to(self, other_query_url_mapping, query='*', url='*', b_t=0.0):

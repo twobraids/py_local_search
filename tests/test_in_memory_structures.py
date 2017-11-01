@@ -155,9 +155,9 @@ class TestURLStatsWithProbabity(TestCase):
     @patch('blender.in_memory_structures.laplace',)
     def test_calculate_probability_relative_to(self, laplace_mock):
         # we need control over the laplace method so that it returns a
-        # known value.  Having it mocked to always return 1 makes it easier
+        # known value.  Having it mocked to always return 0.0 makes it easier
         # to test the resultant values in the equations that use laplace
-        laplace_mock.return_value = 1
+        laplace_mock.return_value = 0.0
 
         other_query_url_mapping = MagicMock()
         other_query_url_mapping['q1']['u1'].count = 10.0

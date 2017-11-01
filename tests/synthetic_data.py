@@ -10,7 +10,7 @@ minimal_constants = {
     "epsilon": 1.0,
     "delta": 0.000001,
     "m_o": 1,
-    "head_list_db.m": 1,
+    "head_list_db.m": 100,
 }
 
 standard_constants = {
@@ -21,7 +21,8 @@ standard_constants = {
 }
 
 single_set = [
-    ('q1', 'q1u1', 30),
+    ('q1', 'q1u1', 100),
+    ('q2', 'q2u1', 100)
 ]
 load_single_data = partial(load_synthetic_data_set, single_set)
 
