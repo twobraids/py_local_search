@@ -237,7 +237,10 @@ def estimate_optin_probabilities(preliminary_head_list, optin_database_t):
     # it would be too late.  The LocalAlg is executed in an asynchronous and
     # distributed manner after this method, estimate_optin_probabilities, but
     # before EstimateClientProbabilities.  Since this method prepares the head_list
-    # for the client, it is best that the star values are added here.
+    # for the client, it is best that the star values are added here.  The algorithm
+    # calls for the <*, *> to be added, but in this implementation, that is
+    # not needed as the previously executed routine subsume_entries_beyond_max_size
+    # has already done this.
     preliminary_head_list.append_star_values()
 
     # this is from lines 4-6 of LocalAlg Figure 6.  The original Blender algorithms

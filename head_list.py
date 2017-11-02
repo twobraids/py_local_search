@@ -143,6 +143,7 @@ class HeadList(QueryURLMapping):
                     # iteration is complete
                     to_be_deleted_list.append((query, url))
         for query, url in to_be_deleted_list:
+            print ('removing {}'.format((query, url)))
             del self[query][url]
             if not len(self[query]):
                 del self[query]

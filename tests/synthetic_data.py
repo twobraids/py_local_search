@@ -20,11 +20,20 @@ standard_constants = {
     "head_list_db.m": 5,
 }
 
-single_set = [
+q1_q1u1_q2_q2u1 = [
     ('q1', 'q1u1', 100),
     ('q2', 'q2u1', 100)
 ]
-load_single_data = partial(load_synthetic_data_set, single_set)
+load_q1_q1u1_q2_q2u1 = partial(load_synthetic_data_set, q1_q1u1_q2_q2u1)
+
+q1_q1u1_q2_q2u1_q2u2 = [
+    ('q1', 'q1u1', 100),
+    ('q2', 'q2u1', 100),
+    ('q2', 'q2u2', 100)
+]
+load_q1_q1u1_q2_q2u1_q2u2 = partial(load_synthetic_data_set, q1_q1u1_q2_q2u1_q2u2)
+
+
 
 tiny_set = [
     ('q1', 'q1u1', 10),

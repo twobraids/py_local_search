@@ -176,6 +176,9 @@ class TestHeadList(TestCase):
         head_list = create_preliminary_headlist(config.head_list_db, optin_db)
         self.assertTrue('*' in head_list)
         self.assertTrue('*' not in optin_db)
+        # only five should be in the headlist, because all other were below threshold
+        self.assertEqual(head_list.count, 5)
+
         optin_db.subsume_those_not_present_in(head_list)
         self.assertTrue('*' in optin_db)
         self.assertEqual(optin_db['*']['*'].count, 500)

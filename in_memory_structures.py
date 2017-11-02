@@ -137,7 +137,14 @@ class URLStatsMapping(MutableMapping, JsonPickleBase, RequiredConfig):
 
     def subsume(self, url, url_stats):
         self[url].subsume(url_stats)
-        self.probability += url_stats.probability
+        self.count += url_stats.count
+        try:
+            self.probability += url_stats.probability
+        except AttributeError:
+            # the url stats class is not one that supports probability
+            # it's still legitimate that we call this routine, we just
+            # cannot update the probability
+            pass
 
     def update_probability(self, url_stats):
         # used by HeadList object
@@ -210,7 +217,7 @@ class QueryURLMapping(MutableMapping, JsonPickleBase, RequiredConfig):
         self.count = 0
 
     def append_star_values(self):
-        self['*'].touch('*')
+        # from 1-3 of EstimateClientProbabilities Figure 5.
         for query in self.queries_and_urls:
             self[query].touch('*')
 
@@ -230,7 +237,7 @@ class QueryURLMapping(MutableMapping, JsonPickleBase, RequiredConfig):
             if query == '*':
                 continue
             if query not in other_query_url_mapping or url not in other_query_url_mapping[query]:
-                self['*']['*'].subsume(self[query][url])
+                self['*'].subsume('*', self[query][url])
                 # we need to remove the <q, u> pair but cannot do so while the collection is
                 # in iteration.  We keep a list of <q, u> pairs to remove and delete them after
                 # iteration is complete

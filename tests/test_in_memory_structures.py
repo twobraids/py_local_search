@@ -42,7 +42,6 @@ class TestURLCounter(TestCase):
         config = {}
         stats_counter_1 = URLCounter(config)
         stats_counter_1.count = 17
-        stats_counter_1.probability = 0.5
 
         stats_counter_2 = URLCounter(config)
         stats_counter_2.increment_count()
@@ -51,48 +50,6 @@ class TestURLCounter(TestCase):
         self.assertEqual(stats_counter_1.count, 18)
         self.assertEqual(stats_counter_2.count, 1)
 
-
-class TestURLStats(TestCase):
-
-    def test_instantiation(self):
-        config = DotDict()
-        config.url_stats_class = URLCounter
-        urls = URLStatsMapping(config)
-        self.assertTrue(urls.config is config)
-        self.assertTrue(isinstance(urls.urls, Mapping))
-
-    def test_add(self):
-        config = DotDict()
-        config.url_stats_class = URLCounter
-        urls = URLStatsMapping(config)
-        urls.add('fred')
-
-        self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].count, 1)
-
-        urls.add('fred')
-
-        self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].count, 2)
-
-    def test_touch(self):
-        config = DotDict()
-        config.url_stats_class = URLCounter
-        urls = URLStatsMapping(config)
-        urls.touch('fred')
-
-        self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].count, 0)
-
-        urls.touch('fred')
-
-        self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].count, 0)
-
-        urls.add('fred')
-
-        self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].count, 1)
 
 
 class TestURLStatsWithProbabity(TestCase):
@@ -187,6 +144,66 @@ class TestURLStatsWithProbabity(TestCase):
         print(stats_counter_1.variance)
         self.assertAlmostEqual(stats_counter_1.variance, 0.00111111)
 
+
+class TestURLStatsMapping(TestCase):
+
+    def test_instantiation(self):
+        config = DotDict()
+        config.url_stats_class = URLCounter
+        urls = URLStatsMapping(config)
+        self.assertTrue(urls.config is config)
+        self.assertTrue(isinstance(urls.urls, Mapping))
+
+    def test_add(self):
+        config = DotDict()
+        config.url_stats_class = URLCounter
+        urls = URLStatsMapping(config)
+        urls.add('fred')
+
+        self.assertTrue('fred' in urls)
+        self.assertEqual(urls['fred'].count, 1)
+
+        urls.add('fred')
+
+        self.assertTrue('fred' in urls)
+        self.assertEqual(urls['fred'].count, 2)
+
+    def test_touch(self):
+        config = DotDict()
+        config.url_stats_class = URLCounter
+        urls = URLStatsMapping(config)
+        urls.touch('fred')
+
+        self.assertTrue('fred' in urls)
+        self.assertEqual(urls['fred'].count, 0)
+
+        urls.touch('fred')
+
+        self.assertTrue('fred' in urls)
+        self.assertEqual(urls['fred'].count, 0)
+
+        urls.add('fred')
+
+        self.assertTrue('fred' in urls)
+        self.assertEqual(urls['fred'].count, 1)
+
+    def test_subsume(self):
+        config = DotDict()
+        config.url_stats_class = URLStatsWithProbability
+        urls = URLStatsMapping(config)
+        urls.add('*')
+        star = urls['*']
+        star.count = 50
+        star.probability = 0.5
+        urls.add('other url')
+        other_url = urls['other_url']
+        other_url.count = 25
+        other_url.probability = 0.25
+
+        urls.subsume('*', other_url)
+
+        self.assertEqual(star.count, 75)
+        self.assertEqual(star.probability, 0.75)
 
 
 class TestQueryURLMappingClass(TestCase):
@@ -334,5 +351,4 @@ class TestQueryURLMappingClass(TestCase):
         self.assertTrue("q2" in reference_q_u_db)
         self.assertTrue("u3" in reference_q_u_db["q2"])
         self.assertEqual(reference_q_u_db["q2"].count, 1)
-
 
