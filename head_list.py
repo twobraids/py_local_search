@@ -42,10 +42,17 @@ class HeadListURLStatsMapping(URLStatsMapping):
 
     def calculate_tau(self):
         self.tau = (
-            (exp(self.config.epsilon_prime_q) + (self.config.delta_prime_q / 2.0) * (self.count - 1.0))
+            (exp(self.config.epsilon_prime_u) + (self.config.delta_prime_u / 2.0) * (self.count - 1.0))
             /
             (exp(self.config.epsilon_prime_u) + self.count - 1.0)
         )
+
+    def subsume(self, url, url_stats):
+        # this method does not have to chain the subsume down the inheritance heirarchy nor the
+        # containment heirarchy because the headlist only limits the count of a <q, u> pair to one
+        # instance.
+        self.probability += url_stats.probability
+
 
     def calculate_probability_relative_to(self, other_query_url_mapping, query="*", b=0.0, head_list=None):
         for url in self.keys():
@@ -113,7 +120,9 @@ class HeadList(QueryURLMapping):
             y = laplace(self.config.b_s)  # TODO: understand and select correct parameter
             if optin_database_s[query][url].count + y > self.config.tau:
                 self.add((query, url))
-        self['*'].touch('*')  # add <*, *> with a count of 0
+        print ('adding <*, *> in create_headlist')
+        self.add(('*', '*'))
+        #self['*'].touch('*')  # add <*, *> with a count of 0
 
     def calculate_probabilities_relative_to(self, other_query_url_mapping):
         """This is from the Blender paper, Figure 4"""
@@ -133,11 +142,18 @@ class HeadList(QueryURLMapping):
         # Figure 4: line 14
         to_be_deleted_list = []
         if '*' not in self:
-            self['*'].touch('*')  # create the entry with a count of zero
+            print ('adding <*, *> in subsume_entries_beyond_max_size')
+            self.add(('*', '*'))
         for i, (probability, query) in enumerate(self.probability_sorted_index.iter_records()):
+            print ("{} head_list.count {}".format(i, self.count))
             if i >= self.config.m:
                 for url in self[query].keys():
+                    print ('subsuming <{}, {}>'.format(query, url))
+                    print ('before <*, *> count {}'.format(self['*']['*'].count))
+                    print ('before * count {}'.format(self['*'].count))
                     self['*'].subsume('*', self[query][url])
+                    print ('after <*, *> count {}'.format(self['*']['*'].count))
+                    print ('after * count {}'.format(self['*'].count))
                     # we need to remove the <q, u> pair but cannot do so while the collection is
                     # in iteration.  We keep a list of <q, u> pairs to remove and delete them after
                     # iteration is complete
@@ -165,7 +181,7 @@ class HeadList(QueryURLMapping):
         self.tau = (
             (exp(self.config.epsilon_prime_q) + (self.config.delta_prime_q / 2.0) * (self.count - 1))
             /
-            (exp(self.config.epsilon_prime_u) + self.count - 1)
+            (exp(self.config.epsilon_prime_q) + self.count - 1)
         )
         for query in self.keys():
             self[query].calculate_tau()

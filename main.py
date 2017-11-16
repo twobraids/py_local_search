@@ -53,7 +53,7 @@ required_config.add_option(
 )
 required_config.add_option(
     "delta",
-    default=0.000001,
+    default=0.000001,  # from text, p11, 1st paragraph
     doc="delta",
 )
 required_config.add_option(

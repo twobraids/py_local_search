@@ -92,8 +92,6 @@ class URLStatsWithProbability(URLCounter):
         )
 
     def calculate_variance_relative_to(self, other_query_url_mapping, query='*', url='*', b_t=0.0):
-        print ('*****  {}'.format((self.probability * (1.0 - self.probability)) / (other_query_url_mapping.count - 1.0)))
-        print ('*****  {}'.format((2.0 * b_t * b_t) / (other_query_url_mapping.count * (other_query_url_mapping.count - 1.0))))
         self.variance = (
             (self.probability * (1.0 - self.probability)) / (other_query_url_mapping.count - 1.0)
             +
@@ -138,13 +136,7 @@ class URLStatsMapping(MutableMapping, JsonPickleBase, RequiredConfig):
     def subsume(self, url, url_stats):
         self[url].subsume(url_stats)
         self.count += url_stats.count
-        try:
-            self.probability += url_stats.probability
-        except AttributeError:
-            # the url stats class is not one that supports probability
-            # it's still legitimate that we call this routine, we just
-            # cannot update the probability
-            pass
+
 
     def update_probability(self, url_stats):
         # used by HeadList object
@@ -175,6 +167,7 @@ class URLStatsMapping(MutableMapping, JsonPickleBase, RequiredConfig):
         self.count += item.count
 
     def __delitem__(self, url):
+        print ('URLStatsMapping.__delitem__ {}'.format(url))
         self.count -= self.urls[url].count
         del self.urls[url]
 
@@ -224,8 +217,13 @@ class QueryURLMapping(MutableMapping, JsonPickleBase, RequiredConfig):
 
     def add(self, q_u_tuple):
         """add a new <q, u> tuple to this collecton"""
-        self.queries_and_urls[q_u_tuple[0]].add(q_u_tuple[1])
+        q, u = q_u_tuple
+        if (q == '*' and u =='*'):
+            print('pre* count {}'.format(self.count))
+        self.queries_and_urls[q].add(u)
         self.count += 1
+        if (q == '*' and u =='*'):
+            print('post* count {}'.format(self.count))
 
     def subsume_those_not_present_in(self, other_query_url_mapping):
         """take all <q, u> records in this collection that are not in the other_query_url_mapping and
@@ -243,8 +241,11 @@ class QueryURLMapping(MutableMapping, JsonPickleBase, RequiredConfig):
                 # iteration is complete
                 to_be_deleted_list.append((query, url))
         for query, url in to_be_deleted_list:
+            self.count -= self[query][url].count
+            print ('deleting {}'.format(url))
             del self[query][url]
             if not len(self[query]):
+                print ('deleting {}'.format(query))
                 del self[query]
 
     def iter_records(self):
@@ -275,6 +276,7 @@ class QueryURLMapping(MutableMapping, JsonPickleBase, RequiredConfig):
         self.queries_and_urls[query] = url
 
     def __delitem__(self, query):
+        print ('deleting {}'.format(query))
         del self.queries_and_urls[query]
 
     def __iter__(self):

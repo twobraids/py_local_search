@@ -61,6 +61,7 @@ class TestHeadListURLStatsMapping(TestCase):
         config.epsilon_prime_q = 1.0
         config.delta_prime_q = 1.0
         config.epsilon_prime_u = 1.0
+        config.delta_prime_u = 1.0
         config.url_stats_class = URLCounter
 
         urls = HeadListURLStatsMapping(config)
@@ -174,20 +175,22 @@ class TestHeadList(TestCase):
             config.optin_db.optin_db_class(config.optin_db)
         )
         head_list = create_preliminary_headlist(config.head_list_db, optin_db)
+        print('prelim headlist')
+        head_list.print()
         self.assertTrue('*' in head_list)
         self.assertTrue('*' not in optin_db)
-        # only five should be in the headlist, because all other were below threshold
-        self.assertEqual(head_list.count, 5)
+        # only six should be in the headlist including '*', because all other were below threshold
+        self.assertEqual(head_list.count, 6)
 
         optin_db.subsume_those_not_present_in(head_list)
         self.assertTrue('*' in optin_db)
         self.assertEqual(optin_db['*']['*'].count, 500)
-        self.assertEqual(head_list['*']['*'].count, 0)
+        self.assertEqual(head_list['*']['*'].count, 1)
         self.assertEqual(head_list['*'].probability, 0.0)
 
         head_list.calculate_probabilities_relative_to(optin_db)
         self.assertEqual(optin_db['*']['*'].count, 500)
-        self.assertEqual(head_list['*']['*'].count, 0)
+        self.assertEqual(head_list['*']['*'].count, 1)
         self.assertEqual(head_list['*'].probability, 0.5)
 
         head_list.subsume_entries_beyond_max_size()
@@ -195,12 +198,13 @@ class TestHeadList(TestCase):
         self.assertEqual(head_list['*']['*'].count, 1)
         self.assertEqual(head_list['*'].probability, 0.6)
 
+        print ("here")
+        head_list.print()
         # why 5 if m is 2?
         #     m selects the number of queries not the number of <q, u> pairs.
         #     2 queries were selected and they each had 2 urls for a total of 4
         #     1 query was rejected and it had 1 url
-        #     the <*, *> had a count of 0 to start so the one rejected query
-        #         was added to make the total 1
+        #     the <*, *> had a count of 1
         #     with 1 in <*, *> and 4 in the selected list, the final total is 5
         self.assertEqual(head_list.count, 5)
 
