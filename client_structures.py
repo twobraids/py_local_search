@@ -1,7 +1,7 @@
 from blender.in_memory_structures import (
-    URLStatsWithProbability,
-    URLStatsMapping,
-    QueryURLMapping,
+    URLStats,
+    Query,
+    QueryCollection,
 )
 
 
@@ -9,15 +9,15 @@ from blender.in_memory_structures import (
 # 3rd Level Structures
 #     Contains a single url's stats
 #     see constructor for attributes
-class URLStatsForClient(URLStatsWithProbability):
+class ClientUrlStats(URLStats):
     def __init__(self, config, count=0):
-        super(URLStatsForClient, self).__init__(config, count)
+        super(ClientUrlStats, self).__init__(config, count)
         self.probability = 0.0  # the computed probability of this URL
         self.variance = 0.0  # the variance of this URL
 
-    def calculate_probability_relative_to(self, other_query_url_mapping, query='*', url='*', r_c_q_u=0.0, head_list=None):
-        other_query = other_query_url_mapping[query]
-        head_list_query = head_list[query]
+    def calculate_probability_relative_to(self, other_query_url_mapping, query_str='*', url_str='*', r_c_q_u=0.0, head_list=None):
+        other_query = other_query_url_mapping[query_str]
+        head_list_query = head_list[query_str]
         # from Figure 5, line 16
         # broken down into separate steps to help clarity
         term_1 = r_c_q_u
@@ -26,9 +26,9 @@ class URLStatsForClient(URLStatsWithProbability):
         term_4 = head_list.tau * (head_list_query.tau - ((1 - head_list_query.tau) / (head_list_query.count - 1)))
         self.probability = (term_1 - term_2 - term_3) / term_4
 
-    def calculate_variance_relative_to(self, other_query_url_mapping, query='*', url='*', r_c_q_u=0.0, head_list=None):
-        other_query = other_query_url_mapping[query]
-        head_list_query = head_list[query]
+    def calculate_variance_relative_to(self, other_query_url_mapping, query_str='*', url_str='*', r_c_q_u=0.0, head_list=None):
+        other_query = other_query_url_mapping[query_str]
+        head_list_query = head_list[query_str]
         # from Figure 5, line 17
         # broken down into separate steps to help clarity
         term_1 = r_c_q_u * (1.0 - r_c_q_u) / (other_query_url_mapping.count - 1.0)
@@ -53,21 +53,21 @@ class URLStatsForClient(URLStatsWithProbability):
 #         urls are the key
 #         3rd Level structures as the value
 
-class URLStatsMappingForClient(URLStatsMapping):
+class ClientQuery(Query):
     def __init__(self, config):
-        super(URLStatsMappingForClient, self).__init__(config)
+        super(ClientQuery, self).__init__(config)
         self.probability = 0.0  # TODO
         self.variance = 0.0  # TODO
 
     def calculate_probabilities_relative_to(self, other_query_url_mapping, head_list):
         # from Figure 5, line 10
-        for query in head_list.keys():
+        for query_str in head_list.keys():
             # from Figure 5, line 11
             # this is very ambiguous: "the fraction of queries q in D_c"
             # does it mean that <q1, u1>, <q1, u2> is counted as two queries
             # or only one?
             fraction_of_this_query_in_other_mapping = (
-                other_query_url_mapping[query].count / other_query_url_mapping.count
+                other_query_url_mapping[query_str].count / other_query_url_mapping.count
             )
             ratio = (1.0 - head_list.tau) / (head_list.count - 1.0)
             # from Figure 5, line 12
@@ -86,22 +86,22 @@ class URLStatsMappingForClient(URLStatsMapping):
             )
 
             # from Figure 5, line 14
-            for url in head_list[query]:
-                other_url = other_query_url_mapping[query][url]
+            for url_str in head_list[query_str]:
+                other_url = other_query_url_mapping[query_str][url_str]
                 # Figure 5, line 15
                 r_c_q_u = other_url.count / other_query_url_mapping.count  # TODO: rename
                 # Figure 5, line 16 implemented in the
-                self[query][url].calculate_probability_relative_to(
+                self[query_str][url_str].calculate_probability_relative_to(
                     other_query_url_mapping,
-                    query=query,
-                    url=url,
+                    query_str=query_str,
+                    url_str=url_str,
                     r_c_q_u=r_c_q_u,
                     head_list=None
                 )
-                self[query][url].calculate_variance_relative_to(
+                self[query_str][url_str].calculate_variance_relative_to(
                     other_query_url_mapping,
-                    query=query,
-                    url=url,
+                    query_str=query_str,
+                    url_str=url_str,
                     r_c_q_u=r_c_q_u,
                     head_list=None
                 )
@@ -113,5 +113,5 @@ class URLStatsMappingForClient(URLStatsMapping):
 #        queries serve as the key
 #        2nd Level structures as the value
 
-class QueryUrlMappingForClient(QueryURLMapping):
+class ClientQueryCollection(QueryCollection):
     pass

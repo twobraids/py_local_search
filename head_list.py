@@ -16,8 +16,8 @@ from configman import (
 )
 
 from blender.in_memory_structures import (
-    URLStatsMapping,
-    QueryURLMapping
+    Query,
+    QueryCollection
 )
 
 
@@ -35,9 +35,9 @@ from blender.in_memory_structures import (
 #         urls are the key
 #         3rd Level structures as the value
 
-class HeadListURLStatsMapping(URLStatsMapping):
+class HeadListQuery(Query):
     def __init__(self, config):
-        super(HeadListURLStatsMapping, self).__init__(config)
+        super(HeadListQuery, self).__init__(config)
         self.tau = 0.0
 
     def calculate_tau(self):
@@ -47,19 +47,21 @@ class HeadListURLStatsMapping(URLStatsMapping):
             (exp(self.config.epsilon_prime_u) + self.count - 1.0)
         )
 
-    def subsume(self, url, url_stats):
+    def subsume(self, query, url_str):
         # this method does not have to chain the subsume down the inheritance heirarchy nor the
         # containment heirarchy because the headlist only limits the count of a <q, u> pair to one
         # instance.
+        url_stats = query[url_str]
         self.probability += url_stats.probability
+        url_stats.probability = 0.0
 
 
-    def calculate_probability_relative_to(self, other_query_url_mapping, query="*", b=0.0, head_list=None):
+    def calculate_probability_relative_to(self, other_query_url_mapping, query_str="*", b=0.0, head_list=None):
         for url in self.keys():
             self[url].calculate_probability_relative_to(
                 other_query_url_mapping,
-                query=query,
-                url=url,
+                query_str=query_str,
+                url_str=url,
                 b=self.config.b_t,
             )
             self.update_probability(self[url])
@@ -69,7 +71,7 @@ class HeadListURLStatsMapping(URLStatsMapping):
 
     def print(self, indent):
         print('{}tau={}'.format(' ' * indent, self.tau))
-        super(HeadListURLStatsMapping, self).print(indent)
+        super(HeadListQuery, self).print(indent)
 
 
 # --------------------------------------------------------------------------------------------------------
@@ -78,7 +80,7 @@ class HeadListURLStatsMapping(URLStatsMapping):
 #        queries serve as the key
 #        2nd Level structures as the value
 
-class HeadList(QueryURLMapping):
+class HeadList(QueryCollection):
     """This class add the Blender algorithmic parts to the highest level of Mapping of Mappings"""
     required_config = Namespace()
     required_config.add_option(
@@ -116,10 +118,10 @@ class HeadList(QueryURLMapping):
         # Figure 3, line 6-7 were moved to configuration of this object
         # from Figure 3, CreateHeadList, line 7
         assert self.config.tau >= 1.0
-        for query, url in optin_database_s.iter_records():
+        for query_str, url_str in optin_database_s.iter_records():
             y = laplace(self.config.b_s)  # TODO: understand and select correct parameter
-            if optin_database_s[query][url].count + y > self.config.tau:
-                self.add((query, url))
+            if optin_database_s[query_str][url_str].count + y > self.config.tau:
+                self.add((query_str, url_str))
         print ('adding <*, *> in create_headlist')
         self.add(('*', '*'))
         #self['*'].touch('*')  # add <*, *> with a count of 0
@@ -127,15 +129,15 @@ class HeadList(QueryURLMapping):
     def calculate_probabilities_relative_to(self, other_query_url_mapping):
         """This is from the Blender paper, Figure 4"""
         # Figure 4: lines 10 - 12
-        for query in self.keys():
-            self[query].calculate_probability_relative_to(
+        for query_str in self.keys():
+            self[query_str].calculate_probability_relative_to(
                 other_query_url_mapping,
-                query=query,
+                query_str=query_str,
                 b=self.config.b_t,
             )
-            if query != '*':
+            if query_str != '*':
                 # we don't need to index the <*, *> case
-                self.probability_sorted_index[self[query].probability].append(query)
+                self.probability_sorted_index[self[query_str].probability].append(query_str)
 
     def subsume_entries_beyond_max_size(self):
         """This is part of the algorithm from the Blender paper, Figure 4"""
@@ -144,35 +146,37 @@ class HeadList(QueryURLMapping):
         if '*' not in self:
             print ('adding <*, *> in subsume_entries_beyond_max_size')
             self.add(('*', '*'))
-        for i, (probability, query) in enumerate(self.probability_sorted_index.iter_records()):
-            print ("{} head_list.count {}".format(i, self.count))
+        for i, (probability, query_str) in enumerate(self.probability_sorted_index.iter_records()):
+            print ("{} head_list.count {} {}".format(i, self.count, query_str))
             if i >= self.config.m:
-                for url in self[query].keys():
-                    print ('subsuming <{}, {}>'.format(query, url))
+                the_query = self[query_str]
+                for url_str in the_query.keys():
+                    print ('subsuming <{}, {}>'.format(query_str, url_str))
                     print ('before <*, *> count {}'.format(self['*']['*'].count))
                     print ('before * count {}'.format(self['*'].count))
-                    self['*'].subsume('*', self[query][url])
+                    self.probability_sorted_index[the_query.probability].remove(query_str)
+                    self['*'].subsume(the_query, url_str)
+                    self.probability_sorted_index[the_query.probability].append(query_str)
                     print ('after <*, *> count {}'.format(self['*']['*'].count))
                     print ('after * count {}'.format(self['*'].count))
                     # we need to remove the <q, u> pair but cannot do so while the collection is
                     # in iteration.  We keep a list of <q, u> pairs to remove and delete them after
                     # iteration is complete
-                    to_be_deleted_list.append((query, url))
-        for query, url in to_be_deleted_list:
-            print ('removing {}'.format((query, url)))
-            del self[query][url]
-            if not len(self[query]):
-                del self[query]
+                    to_be_deleted_list.append((query_str, url_str))
+        for query_str, url_str in to_be_deleted_list:
+            del self[query_str][url_str]
+            if not len(self[query_str]):
+                del self[query_str]
 
     def calculate_variance_relative_to(self, other_query_url_mapping):
         """This is part of the algorithm from the Blender paper, Figure 4"""
         # Figure 4: line 15 & 13
         b_t = 2.0 * self.config.m_o / self.config.epsilon
-        for query, url in self.iter_records():
-            self[query][url].calculate_variance_relative_to(
+        for query_str, url_str in self.iter_records():
+            self[query_str][url_str].calculate_variance_relative_to(
                 other_query_url_mapping,
-                query=query,
-                url=url,
+                query_str=query_str,
+                url_str=url_str,
                 b_t=b_t
             )
 
@@ -183,8 +187,8 @@ class HeadList(QueryURLMapping):
             /
             (exp(self.config.epsilon_prime_q) + self.count - 1)
         )
-        for query in self.keys():
-            self[query].calculate_tau()
+        for query_str in self.keys():
+            self[query_str].calculate_tau()
 
     def print(self, indent=0):
         print('{}config.tau={}'.format(' ' * indent, self.config.tau))
@@ -193,7 +197,7 @@ class HeadList(QueryURLMapping):
 
     def export_for_client_distribution(self):
         # this ought to produce a json file without the probabilites and variance data
-        for query in self.keys():
+        for query_str in self.keys():
             pass
 
     def __getstate__(self, key_list=None):

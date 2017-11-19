@@ -13,58 +13,47 @@ from configman.dotdict import (
 )
 
 from blender.in_memory_structures import (
-    URLCounter,
-    URLStatsWithProbability,
-    URLStatsMapping,
-    QueryURLMapping,
+    URLStats,
+    URLStats,
+    Query,
+    QueryCollection,
 )
 
 
-class TestURLCounter(TestCase):
+class TestURLStats(TestCase):
 
     def test_instantiation(self):
         config = {}
-        new_stats_counter = URLCounter(config)
+        new_stats_counter = URLStats(config)
         self.assertTrue(new_stats_counter.config is config)
         self.assertEqual(new_stats_counter.count, 0)
 
-        new_stats_counter = URLCounter(config, 16)
+        new_stats_counter = URLStats(config, 16)
         self.assertEqual(new_stats_counter.count, 16)
 
     def test_increment_count(self):
         config = {}
-        new_stats_counter = URLCounter(config)
+        new_stats_counter = URLStats(config)
         self.assertEqual(new_stats_counter.count, 0)
         new_stats_counter.increment_count()
         self.assertEqual(new_stats_counter.count, 1)
 
     def test_subsume(self):
         config = {}
-        stats_counter_1 = URLCounter(config)
-        stats_counter_1.count = 17
+        url_stats1 = URLStats(config)
+        url_stats1.count = 17
 
-        stats_counter_2 = URLCounter(config)
-        stats_counter_2.increment_count()
-        stats_counter_1.subsume(stats_counter_2)
+        url_stats_2 = URLStats(config)
+        url_stats_2.increment_count()
+        url_stats1.subsume(url_stats_2)
 
-        self.assertEqual(stats_counter_1.count, 18)
-        self.assertEqual(stats_counter_2.count, 1)
-
-
-
-class TestURLStatsWithProbabity(TestCase):
-
-    def test_instantiation(self):
-        config = DotDict()
-        config.url_stats_class = URLStatsWithProbability
-        urls = URLStatsMapping(config)
-        self.assertTrue(urls.config is config)
-        self.assertTrue(isinstance(urls.urls, Mapping))
+        self.assertEqual(url_stats1.count, 18)
+        self.assertEqual(url_stats_2.count, 1)
 
     def test_add(self):
         config = DotDict()
-        config.url_stats_class = URLStatsWithProbability
-        urls = URLStatsMapping(config)
+        config.url_stats_class = URLStats
+        urls = Query(config)
         urls.add('fred')
 
         self.assertTrue('fred' in urls)
@@ -77,8 +66,8 @@ class TestURLStatsWithProbabity(TestCase):
 
     def test_touch(self):
         config = DotDict()
-        config.url_stats_class = URLStatsWithProbability
-        urls = URLStatsMapping(config)
+        config.url_stats_class = URLStats
+        urls = Query(config)
         urls.touch('fred')
 
         self.assertTrue('fred' in urls)
@@ -96,18 +85,19 @@ class TestURLStatsWithProbabity(TestCase):
 
     def test_subsume(self):
         config = {}
-        stats_counter_1 = URLStatsWithProbability(config)
-        stats_counter_1.count = 17
-        stats_counter_1.probability = 0.5
+        url_stats1 = URLStats(config)
+        url_stats1.count = 17
+        url_stats1.probability = 0.5
 
-        stats_counter_2 = URLStatsWithProbability(config)
-        stats_counter_2.increment_count()
-        stats_counter_2.probability = 0.25
-        stats_counter_1.subsume(stats_counter_2)
+        url_stats_2 = URLStats(config)
+        url_stats_2.increment_count()
+        url_stats_2.probability = 0.25
 
-        self.assertEqual(stats_counter_1.count, 18)
-        self.assertEqual(stats_counter_2.count, 1)
-        self.assertEqual(stats_counter_1.probability, 0.75)
+        url_stats1.subsume(url_stats_2)
+
+        self.assertEqual(url_stats1.count, 18)
+        self.assertEqual(url_stats_2.count, 0)
+        self.assertEqual(url_stats1.probability, 0.75)
 
     @patch('blender.in_memory_structures.laplace',)
     def test_calculate_probability_relative_to(self, laplace_mock):
@@ -116,48 +106,48 @@ class TestURLStatsWithProbabity(TestCase):
         # to test the resultant values in the equations that use laplace
         laplace_mock.return_value = 0.0
 
-        other_query_url_mapping = MagicMock()
-        other_query_url_mapping['q1']['u1'].count = 10.0
-        other_query_url_mapping.count = 100.0
+        other_url_url_mapping = MagicMock()
+        other_url_url_mapping['q1']['u1'].count = 10.0
+        other_url_url_mapping.count = 100.0
 
         config = {}
-        stats_counter_1 = URLStatsWithProbability(config)
+        stats_counter_1 = URLStats(config)
         stats_counter_1.calculate_probability_relative_to(
-            other_query_url_mapping,
-            query='q1',
-            url='u1'
+            other_url_url_mapping,
+            query_str='q1',
+            url_str='u1'
         )
         laplace_mock.assert_called_once_with(0.0)
         self.assertEqual(stats_counter_1.probability, 0.1)
 
     def test_calculate_variance_relative_to(self):
-        other_query_url_mapping = MagicMock()
-        other_query_url_mapping.count = 100.0
+        other_url_url_mapping = MagicMock()
+        other_url_url_mapping.count = 100.0
 
         config = {}
-        stats_counter_1 = URLStatsWithProbability(config)
+        stats_counter_1 = URLStats(config)
         stats_counter_1.probability = 0.1
         stats_counter_1.calculate_variance_relative_to(
-            other_query_url_mapping,
+            other_url_url_mapping,
             b_t=1.0
         )
         print(stats_counter_1.variance)
         self.assertAlmostEqual(stats_counter_1.variance, 0.00111111)
 
 
-class TestURLStatsMapping(TestCase):
+class TestQuery(TestCase):
 
     def test_instantiation(self):
         config = DotDict()
-        config.url_stats_class = URLCounter
-        urls = URLStatsMapping(config)
+        config.url_stats_class = URLStats
+        urls = Query(config)
         self.assertTrue(urls.config is config)
         self.assertTrue(isinstance(urls.urls, Mapping))
 
     def test_add(self):
         config = DotDict()
-        config.url_stats_class = URLCounter
-        urls = URLStatsMapping(config)
+        config.url_stats_class = URLStats
+        urls = Query(config)
         urls.add('fred')
 
         self.assertTrue('fred' in urls)
@@ -170,8 +160,8 @@ class TestURLStatsMapping(TestCase):
 
     def test_touch(self):
         config = DotDict()
-        config.url_stats_class = URLCounter
-        urls = URLStatsMapping(config)
+        config.url_stats_class = URLStats
+        urls = Query(config)
         urls.touch('fred')
 
         self.assertTrue('fred' in urls)
@@ -189,40 +179,40 @@ class TestURLStatsMapping(TestCase):
 
     def test_subsume(self):
         config = DotDict()
-        config.url_stats_class = URLStatsWithProbability
-        urls = URLStatsMapping(config)
-        urls.add('*')
-        star = urls['*']
-        star.count = 50
-        star.probability = 0.5
-        urls.add('other url')
-        other_url = urls['other_url']
+        config.url_stats_class = URLStats
+        a_query = Query(config)
+        a_query.add('*')
+        star_url = a_query['*']
+        star_url.count = 50
+        star_url.probability = 0.5
+        a_query.add('other_url')
+        other_url = a_query['other_url']
         other_url.count = 25
         other_url.probability = 0.25
 
-        urls.subsume('*', other_url)
+        a_query.subsume(a_query, 'other_url')
 
-        self.assertEqual(star.count, 75)
-        self.assertEqual(star.probability, 0.75)
+        self.assertEqual(star_url.count, 75)
+        self.assertEqual(star_url.probability, 0.75)
 
 
-class TestQueryURLMappingClass(TestCase):
+class TestQueryCollection(TestCase):
 
     def test_instantiation(self):
         config = DotDict()
-        config.url_stats_class = URLCounter
-        config.url_mapping_class = URLStatsMapping
-        q_u_db = QueryURLMapping(config)
+        config.url_stats_class = URLStats
+        config.query_class = Query
+        q_u_db = QueryCollection(config)
 
         self.assertTrue(q_u_db.config is config)
-        self.assertTrue(isinstance(q_u_db.queries_and_urls, Mapping))
+        self.assertTrue(isinstance(q_u_db.queries, Mapping))
         self.assertEqual(q_u_db.count, 0)
 
     def test_append_star_values(self):
         config = DotDict()
-        config.url_stats_class = URLCounter
-        config.url_mapping_class = URLStatsMapping
-        q_u_db = QueryURLMapping(config)
+        config.url_stats_class = URLStats
+        config.query_class = Query
+        q_u_db = QueryCollection(config)
         q_u_db.add(('a_query', 'a_url'))
         q_u_db.append_star_values()
 
@@ -236,9 +226,9 @@ class TestQueryURLMappingClass(TestCase):
 
     def test_add(self):
         config = DotDict()
-        config.url_stats_class = URLCounter
-        config.url_mapping_class = URLStatsMapping
-        q_u_db = QueryURLMapping(config)
+        config.url_stats_class = URLStats
+        config.query_class = Query
+        q_u_db = QueryCollection(config)
         q_u_db.add(('a_query', 'a_url'))
 
         self.assertTrue('a_query' in q_u_db)
@@ -254,9 +244,9 @@ class TestQueryURLMappingClass(TestCase):
 
     def test_iter_records(self):
         config = DotDict()
-        config.url_stats_class = URLCounter
-        config.url_mapping_class = URLStatsMapping
-        q_u_db = QueryURLMapping(config)
+        config.url_stats_class = URLStats
+        config.query_class = Query
+        q_u_db = QueryCollection(config)
         q_u_pairs = [
             ('q1', 'u1'),
             ('q1', 'u1'),
@@ -289,9 +279,9 @@ class TestQueryURLMappingClass(TestCase):
 
     def test_subsume_those_not_present(self):
         config = DotDict()
-        config.url_stats_class = URLCounter
-        config.url_mapping_class = URLStatsMapping
-        reference_q_u_db = QueryURLMapping(config)
+        config.url_stats_class = URLStats
+        config.query_class = Query
+        reference_q_u_db = QueryCollection(config)
         q_u_pairs = [
             ('q1', 'u1'),
             ('q1', 'u1'),
@@ -305,7 +295,7 @@ class TestQueryURLMappingClass(TestCase):
         for q_u in q_u_pairs:
             reference_q_u_db.add(q_u)
 
-        test_q_u_db = QueryURLMapping(config)
+        test_q_u_db = QueryCollection(config)
         for q_u in q_u_pairs:
             test_q_u_db.add(q_u)
         additional_q_u_pairs = [
@@ -337,9 +327,9 @@ class TestQueryURLMappingClass(TestCase):
         mocked_open.return_value.__next__ = lambda self: self.readline()
 
         config = DotDict()
-        config.url_stats_class = URLCounter
-        config.url_mapping_class = URLStatsMapping
-        reference_q_u_db = QueryURLMapping(config)
+        config.url_stats_class = URLStats
+        config.query_class = Query
+        reference_q_u_db = QueryCollection(config)
 
         reference_q_u_db.load("somefile")
 

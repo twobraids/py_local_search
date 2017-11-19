@@ -8,31 +8,31 @@ from configman.dotdict import (
 )
 
 from blender.in_memory_structures import (
-    URLCounter,
-    URLStatsMapping,
-    QueryURLMapping,
+    URLStats,
+    Query,
+    QueryCollection,
 )
 
 from blender.client_structures import (
-    QueryUrlMappingForClient,
-    URLStatsForClient
+    ClientQuery,
+    ClientUrlStats
 )
 
 
 
-class TestURLStatsForClient(TestCase):
+class TestClientUrlStats(TestCase):
 
     def test_instantiation(self):
         config = DotDict()
-        config.url_stats_class = URLStatsForClient
-        urls = URLStatsMapping(config)
+        config.url_stats_class = ClientUrlStats
+        urls = Query(config)
         self.assertTrue(urls.config is config)
         self.assertTrue(isinstance(urls.urls, Mapping))
 
     def test_add(self):
         config = DotDict()
-        config.url_stats_class = URLStatsForClient
-        urls = URLStatsMapping(config)
+        config.url_stats_class = ClientUrlStats
+        urls = Query(config)
         urls.add('fred')
 
         self.assertTrue('fred' in urls)
@@ -45,8 +45,8 @@ class TestURLStatsForClient(TestCase):
 
     def test_touch(self):
         config = DotDict()
-        config.url_stats_class = URLStatsForClient
-        urls = URLStatsMapping(config)
+        config.url_stats_class = ClientUrlStats
+        urls = Query(config)
         urls.touch('fred')
 
         self.assertTrue('fred' in urls)
@@ -64,16 +64,16 @@ class TestURLStatsForClient(TestCase):
 
     def test_subsume(self):
         config = {}
-        stats_counter_1 = URLStatsForClient(config)
+        stats_counter_1 = ClientUrlStats(config)
         stats_counter_1.count = 17
         stats_counter_1.probability = 0.5
 
-        stats_counter_2 = URLStatsForClient(config)
+        stats_counter_2 = ClientUrlStats(config)
         stats_counter_2.increment_count()
         stats_counter_2.probability = 0.25
         stats_counter_1.subsume(stats_counter_2)
 
         self.assertEqual(stats_counter_1.count, 18)
-        self.assertEqual(stats_counter_2.count, 1)
+        self.assertEqual(stats_counter_2.count, 0)
         self.assertEqual(stats_counter_1.probability, 0.75)
 

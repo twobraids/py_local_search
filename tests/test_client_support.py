@@ -9,20 +9,20 @@ from blender.tests.client_support import (
 )
 from blender.head_list import (
     HeadList,
-    HeadListURLStatsMapping,
+    HeadListQuery,
 )
 from blender.in_memory_structures import (
-    URLCounter,
-    URLStatsWithProbability,
-    URLStatsMapping,
-    QueryURLMapping
+    URLStats,
+    URLStats,
+    Query,
+    QueryCollection
 )
 
 
 #class TestLocalAlg(TestCase):
 
     #def _create_optin_db_01(self, config):
-        #q_u_db = QueryURLMapping(config)
+        #q_u_db = QueryCollection(config)
         #q_u_pairs = [
             #('q1', 'q1u1', 10),
             #('q2', 'q2u1', 10),
@@ -43,7 +43,7 @@ from blender.in_memory_structures import (
         #return q_u_db
 
     #def _create_optin_db_02(self, config):
-        #q_u_db = QueryURLMapping(config)
+        #q_u_db = QueryCollection(config)
         #q_u_pairs = [
             #('q1', 'q1u1', 10),
             #('q2', 'q2u1', 10),
@@ -80,14 +80,14 @@ from blender.in_memory_structures import (
         #config.m = 5
 
         #config.optin_db = DotDictWithAcquisition()
-        #config.optin_db.head_list_class = QueryURLMapping
-        #config.optin_db.url_stats_class = URLStatsWithProbability
-        #config.optin_db.url_mapping_class = URLStatsMapping
+        #config.optin_db.head_list_class = QueryCollection
+        #config.optin_db.url_stats_class = URLStats
+        #config.optin_db.query_class = Query
 
         #config.head_list_db = DotDictWithAcquisition()
         #config.head_list_db.head_list_class = HeadList
-        #config.head_list_db.url_stats_class = URLStatsWithProbability
-        #config.head_list_db.url_mapping_class = URLStatsMapping
+        #config.head_list_db.url_stats_class = URLStats
+        #config.head_list_db.query_class = Query
         #config.head_list_db.b_s = 5.0
         #config.head_list_db.tau = 83.06062179501248
 

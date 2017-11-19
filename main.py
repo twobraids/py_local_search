@@ -16,7 +16,7 @@ required_config = Namespace()
 required_config.namespace('optin_db')
 required_config.optin_db.add_option(
     name="optin_db_class",
-    default="blender.in_memory_structures.QueryURLMapping",
+    default="blender.in_memory_structures.QueryCollection",
     from_string_converter=class_converter,
     doc="dependency injection of a class to serve as non-headlist <q, u> databases"
 )
@@ -32,7 +32,7 @@ required_config.head_list_db.add_option(
 required_config.namespace('client_db')
 required_config.client_db.add_option(
     name="client_db_class",
-    default="blender.in_memory_structures.QueryURLMapping",
+    default="blender.in_memory_structures.QueryCollection",
     from_string_converter=class_converter,
     doc="dependency injection of a class to serve as the Optin Database"
 )
@@ -143,14 +143,14 @@ required_config.add_aggregation(
 # role that the data structure represents.
 #
 # For example, the "optin_db" is represented by using the Top Level Structure,
-# "optin_structures.QueryURLMappingClass", which is keyed by the query.
+# "optin_structures.QueryCollection", which is keyed by the query.
 #
 # optin_db['some query'] returns an instance of the 2nd level of the
-# structure, an instance of "in_memory_structures.URLStatsMapping".
+# structure, an instance of "in_memory_structures.Query".
 # This is itself a mapping which is keyed by url.
 #
 # optin_db['some query']['some/url'] returns an instance of the 3rd level, a url
-# stats object, "in_memory_structures.URLStatsWithProbability".  This final
+# stats object, "in_memory_structures.URLStats".  This final
 # lowest level object contains stats and methods for individual urls.
 #
 # this section consolidates the declaration of the mapping structures into
@@ -167,33 +167,33 @@ default_data_structures = {  # keyed by the use case
         # level 1
         "head_list_class": "blender.head_list.HeadList",
         # level 2
-        "url_mapping_class": "blender.head_list.HeadListURLStatsMapping",
+        "query_class": "blender.head_list.HeadListQuery",
         # level 3
-        "url_stats_class": "blender.in_memory_structures.URLStatsWithProbability"
+        "url_stats_class": "blender.in_memory_structures.URLStats"
     },
     "optin_db": {
         # level 1
-        "optin_db_class": "blender.in_memory_structures.QueryURLMapping",
+        "optin_db_class": "blender.in_memory_structures.QueryCollection",
         # level 2
-        "url_mapping_class": "blender.in_memory_structures.URLStatsMapping",
+        "query_class": "blender.in_memory_structures.Query",
         # level 3
-        "url_stats_class": "blender.in_memory_structures.URLCounter"
+        "url_stats_class": "blender.in_memory_structures.URLStats"
     },
     "client_db": {
         # level 1
-        "client_db_class": "blender.client_structures.QueryUrlMappingForClient",
+        "client_db_class": "blender.client_structures.ClientUrlStats",
         # level 2
-        "url_mapping_class": "blender.client_structures.URLStatsMapping",
+        "query_class": "blender.client_structures.Query",
         # level 3
-        "url_stats_class": "blender.client_structures.URLStatsWithProbability"
+        "url_stats_class": "blender.client_structures.URLStats"
     },
     "final_probabilities": {
         # level 1
-        "final_probabilites_db_class": "blender.in_memory_structures.QueryURLMapping",
+        "final_probabilites_db_class": "blender.in_memory_structures.QueryCollection",
         # level 2
-        "url_mapping_class": "blender.in_memory_structures.URLStatsMapping",
+        "query_class": "blender.in_memory_structures.Query",
         # level 3
-        "url_stats_class": "blender.final_structures.URLStatsWithProbability"
+        "url_stats_class": "blender.final_structures.URLStats"
     },
 }
 
@@ -298,8 +298,8 @@ def blend_probabilities(config, optin_probabilities, client_probabilities):
     for query, url in optin_probabilities.iter_records():
         final_probabilities[query][url].calculate_probability_relative_to(
             client_probabilities,
-            query=query,
-            url=url,
+            query_str=query,
+            url_str=url,
             head_list=optin_probabilities,
         )
 

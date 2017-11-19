@@ -50,7 +50,7 @@ class JsonPickleBase(object):
 # 3rd Level Structures
 #     Contains a single url's stats
 #     see constructor for attributes
-class URLCounter(JsonPickleBase):
+class URLStats(JsonPickleBase):
     """Lowest level of the nested mappings. This is the data associated with a URL.
     This data structure will likely be modified to include page title and excerpt
     at sometime in the future.
@@ -58,50 +58,36 @@ class URLCounter(JsonPickleBase):
     def __init__(self, config, count=0):
         self.config = config  # constants and configuration
         self.count = count  # number of repeats of this URL
+        self.probability = 0.0  # the computed probability of this URL
+        self.variance = 0.0  # the variance of this URL
 
     def increment_count(self, amount=1):
         self.count += amount
 
-    def subsume(self, other_URLStatsCounter):
-        self.count += other_URLStatsCounter.count
+    def subsume(self, other_URLStats):
+        self.count += other_URLStats.count
+        self.probability += other_URLStats.probability
+        other_URLStats.count = 0
+        other_URLStats.probability = 0.0
 
     def print(self, indent=0):
         print('{}count={}'.format(' ' * indent, self.count))
+        print("{}prob={}".format(' ' * indent, self.probability))
+        print("{}vari={}".format(' ' * indent, self.variance))
 
-
-
-class URLStatsWithProbability(URLCounter):
-    def __init__(self, config, count=0):
-        super(URLStatsWithProbability, self).__init__(config, count)
-        self.probability = 0.0  # the computed probability of this URL
-        self.variance = 0.0  # the variance of this URL
-
-    def subsume(self, other_URLStatsCounter):
-        super(URLStatsWithProbability, self).subsume(other_URLStatsCounter)
-        self.probability += other_URLStatsCounter.probability
-        # varaince is not something that can be updated by summation.  Refrain from
-        # setting it here to allow for calculating it on demand at a future time
-        # (for example, see the 2nd level class blender.head_list_db.HeadListURLStatsMapping
-        # and the method calculate_probability_relative_to)
-        # self.variance   # take no action, do it later
-
-    def calculate_probability_relative_to(self, other_query_url_mapping, query="*", url="*", b=0.0, head_list=None):
+    def calculate_probability_relative_to(self, other_query_url_mapping, query_str="*", url_str="*", b=0.0, head_list=None):
         y = laplace(b)  # TODO: understand and select correct parameter
         self.probability = (
-            (other_query_url_mapping[query][url].count + y) / other_query_url_mapping.count
+            (other_query_url_mapping[query_str][url_str].count + y) / other_query_url_mapping.count
         )
 
-    def calculate_variance_relative_to(self, other_query_url_mapping, query='*', url='*', b_t=0.0):
+    def calculate_variance_relative_to(self, other_query_url_mapping, query_str='*', url_str='*', b_t=0.0):
         self.variance = (
             (self.probability * (1.0 - self.probability)) / (other_query_url_mapping.count - 1.0)
             +
             (2.0 * b_t * b_t) / (other_query_url_mapping.count * (other_query_url_mapping.count - 1.0))
         )
 
-    def print(self, indent=0):
-        super(URLStatsWithProbability, self).print(indent)
-        print("{}prob={}".format(' ' * indent, self.probability))
-        print("{}vari={}".format(' ' * indent, self.variance))
 
 # --------------------------------------------------------------------------------------------------------
 # 2nd Level Structures
@@ -110,14 +96,14 @@ class URLStatsWithProbability(URLCounter):
 #         urls are the key
 #         3rd Level structures as the value
 
-class URLStatsMapping(MutableMapping, JsonPickleBase, RequiredConfig):
+class Query(MutableMapping, JsonPickleBase, RequiredConfig):
     """A mapping of URLs to URL stats classes.  The keys are URLs as strings and the values
     are instances of the class representing the URL data and stats.
     """
     required_config = Namespace()
     required_config.add_option(
         name="url_stats_class",
-        default="blender.in_memory_structures.URLStatsWithProbability",
+        default="blender.in_memory_structures.URLStats",
         from_string_converter=class_converter,
         doc="dependency injection of a class to represent statistics for URLs"
     )
@@ -133,9 +119,14 @@ class URLStatsMapping(MutableMapping, JsonPickleBase, RequiredConfig):
         """add a url without incrementing the count - this is used to add the star url *"""
         self.urls[url]
 
-    def subsume(self, url, url_stats):
-        self[url].subsume(url_stats)
+    def subsume(self, query, url_str):
+        url_stats = query[url_str]
         self.count += url_stats.count
+        self.probability += url_stats.probability
+        #self.variance
+        query.count -= url_stats.count
+        query.probability -= url_stats.probability
+        self['*'].subsume(url_stats)
 
 
     def update_probability(self, url_stats):
@@ -155,8 +146,8 @@ class URLStatsMapping(MutableMapping, JsonPickleBase, RequiredConfig):
             self[url].print(indent + 4)
 
 
-    def __getitem__(self, query):
-        return self.urls[query]
+    def __getitem__(self, query_str):
+        return self.urls[query_str]
 
     def __setitem__(self, url, item):
         try:
@@ -167,8 +158,6 @@ class URLStatsMapping(MutableMapping, JsonPickleBase, RequiredConfig):
         self.count += item.count
 
     def __delitem__(self, url):
-        print ('URLStatsMapping.__delitem__ {}'.format(url))
-        self.count -= self.urls[url].count
         del self.urls[url]
 
     def __iter__(self):
@@ -188,13 +177,13 @@ class URLStatsMapping(MutableMapping, JsonPickleBase, RequiredConfig):
 #        queries serve as the key
 #        2nd Level structures as the value
 
-class QueryURLMapping(MutableMapping, JsonPickleBase, RequiredConfig):
+class QueryCollection(MutableMapping, JsonPickleBase, RequiredConfig):
     """This is the top of the mappings of mappings. The keys are queries and the values are
     instances of a mapping of URLs to URL statistics"""
     required_config = Namespace()
     required_config.add_option(
-        name="url_mapping_class",
-        default="blender.in_memory_structures.URLStatsMapping",
+        name="query_class",
+        default="blender.in_memory_structures.Query",
         from_string_converter=class_converter,
         doc="dependency injection of a class to represent a mapping of URLs to URL stats objects"
     )
@@ -206,13 +195,13 @@ class QueryURLMapping(MutableMapping, JsonPickleBase, RequiredConfig):
         # to a function to create instances of the value class of the dictionary.  Using 'partial'
         # allows the instantiated URL class to use dependency injection too, by passing the
         # the configuration in during instantiation
-        self.queries_and_urls = defaultdict(partial(self.config.url_mapping_class, self.config))
+        self.queries = defaultdict(partial(self.config.query_class, self.config))
         self.count = 0
 
     def append_star_values(self):
         # from 1-3 of EstimateClientProbabilities Figure 5.
-        for query in self.queries_and_urls:
-            self[query].touch('*')
+        for query_str in self.queries:
+            self[query_str].touch('*')
 
 
     def add(self, q_u_tuple):
@@ -220,33 +209,31 @@ class QueryURLMapping(MutableMapping, JsonPickleBase, RequiredConfig):
         q, u = q_u_tuple
         if (q == '*' and u =='*'):
             print('pre* count {}'.format(self.count))
-        self.queries_and_urls[q].add(u)
+        self.queries[q].add(u)
         self.count += 1
         if (q == '*' and u =='*'):
             print('post* count {}'.format(self.count))
 
-    def subsume_those_not_present_in(self, other_query_url_mapping):
+    def subsume_those_not_present_in(self, other_query_collection):
         """take all <q, u> records in this collection that are not in the other_query_url_mapping and
         merge their statistics into this collection's <*, *> entry"""
+        print ('===== self.count {}'.format(self.count))
         to_be_deleted_list = []
-        if '*' not in self.queries_and_urls:
+        if '*' not in self.queries:
             self['*'].touch('*')
-        for query, url in self.iter_records():
-            if query == '*':
+        for query_str, url_str in self.iter_records():
+            if query_str == '*':
                 continue
-            if query not in other_query_url_mapping or url not in other_query_url_mapping[query]:
-                self['*'].subsume('*', self[query][url])
+            if query_str not in other_query_collection or url_str not in other_query_collection[query_str]:
+                self['*'].subsume(self[query_str], url_str)
                 # we need to remove the <q, u> pair but cannot do so while the collection is
                 # in iteration.  We keep a list of <q, u> pairs to remove and delete them after
                 # iteration is complete
-                to_be_deleted_list.append((query, url))
-        for query, url in to_be_deleted_list:
-            self.count -= self[query][url].count
-            print ('deleting {}'.format(url))
-            del self[query][url]
-            if not len(self[query]):
-                print ('deleting {}'.format(query))
-                del self[query]
+                to_be_deleted_list.append((query_str, url_str))
+        for query_str, url_str in to_be_deleted_list:
+            del self[query_str][url_str]
+            if not len(self[query_str]):
+                del self[query_str]
 
     def iter_records(self):
         """an alternative iterator that returns unique <q, u> pairs"""
@@ -262,30 +249,29 @@ class QueryURLMapping(MutableMapping, JsonPickleBase, RequiredConfig):
 
     def print(self, indent=0):
         print('{}count={}'.format(' ' * indent, self.count))
-        for query in self:
-            print('{}{}'.format(' ' * indent, query))
-            self[query].print(indent + 4)
+        for query_str in self:
+            print('{}{}'.format(' ' * indent, query_str))
+            self[query_str].print(indent + 4)
 
 
     # this class implements the MuteableMapping Abstract Base Class.  These are the implementation of
     # the required methods for that ABC.
-    def __getitem__(self, query):
-        return self.queries_and_urls[query]
+    def __getitem__(self, query_str):
+        return self.queries[query_str]
 
-    def __setitem__(self, query, url):
-        self.queries_and_urls[query] = url
+    def __setitem__(self, query_str, url):
+        self.queries[query_str] = url
 
-    def __delitem__(self, query):
-        print ('deleting {}'.format(query))
-        del self.queries_and_urls[query]
+    def __delitem__(self, query_str):
+        del self.queries[query_str]
 
     def __iter__(self):
-        for key in self.queries_and_urls:
+        for key in self.queries:
             yield key
 
     def __len__(self):
-        return len(self.queries_and_urls)
+        return len(self.queries)
 
     def __contains__(self, key):
-        return key in self.queries_and_urls
+        return key in self.queries
 

@@ -13,12 +13,12 @@ from configman.dotdict import (
 
 from blender.head_list import (
     HeadList,
-    HeadListURLStatsMapping,
+    HeadListQuery,
 )
 from blender.in_memory_structures import (
-    URLCounter,
-    URLStatsMapping,
-    QueryURLMapping
+    URLStats,
+    Query,
+    QueryCollection
 )
 from blender.main import (
     create_preliminary_headlist,

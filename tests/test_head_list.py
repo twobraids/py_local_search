@@ -26,11 +26,11 @@ class DotDictHandler(jsonpickle.handlers.BaseHandler):
 
 from blender.head_list import (
     HeadList,
-    HeadListURLStatsMapping,
+    HeadListQuery,
 )
 from blender.in_memory_structures import (
-    URLCounter,
-    QueryURLMapping
+    URLStats,
+    QueryCollection
 )
 from blender.main import (
     required_config,
@@ -45,13 +45,13 @@ from blender.tests.synthetic_data import (
 )
 
 
-class TestHeadListURLStatsMapping(TestCase):
+class TestHeadListQuery(TestCase):
 
     def test_instantiation(self):
         config = DotDict()
-        config.url_stats_class = URLCounter
+        config.url_stats_class = URLStats
 
-        urls = HeadListURLStatsMapping(config)
+        urls = HeadListQuery(config)
         self.assertTrue(urls.config is config)
         self.assertTrue(isinstance(urls.urls, Mapping))
         self.assertEqual(urls.tau, 0.0)
@@ -62,9 +62,9 @@ class TestHeadListURLStatsMapping(TestCase):
         config.delta_prime_q = 1.0
         config.epsilon_prime_u = 1.0
         config.delta_prime_u = 1.0
-        config.url_stats_class = URLCounter
+        config.url_stats_class = URLStats
 
-        urls = HeadListURLStatsMapping(config)
+        urls = HeadListQuery(config)
         urls.add('u1')
         urls.add('u2')
         urls.calculate_tau()
@@ -87,7 +87,7 @@ class TestHeadList(TestCase):
         self.assertEqual(config.head_list_db.b_s, 5.0)
         self.assertEqual(config.head_list_db.tau, 83.06062179501248)
         self.assertEqual(config.head_list_db.head_list_class, HeadList)
-        self.assertEqual(config.optin_db.optin_db_class, QueryURLMapping)
+        self.assertEqual(config.optin_db.optin_db_class, QueryCollection)
 
         q_u_db = config.optin_db.optin_db_class(config.optin_db)
 
@@ -182,6 +182,10 @@ class TestHeadList(TestCase):
         # only six should be in the headlist including '*', because all other were below threshold
         self.assertEqual(head_list.count, 6)
 
+        print('head_list.probability_sorted_index')
+        for prob, query_str in head_list.probability_sorted_index.iteritems():
+            print ('{} {}'.format(prob, query_str))
+
         optin_db.subsume_those_not_present_in(head_list)
         self.assertTrue('*' in optin_db)
         self.assertEqual(optin_db['*']['*'].count, 500)
@@ -193,7 +197,21 @@ class TestHeadList(TestCase):
         self.assertEqual(head_list['*']['*'].count, 1)
         self.assertEqual(head_list['*'].probability, 0.5)
 
+        print ('pre <*,*>.count: {}'.format(head_list['*']['*'].count))
+
+        print('head_list.probability_sorted_index')
+        for prob, query_str in head_list.probability_sorted_index.iteritems():
+            print ('{} {}'.format(prob, query_str))
+
+
         head_list.subsume_entries_beyond_max_size()
+        print ('post <*,*>.count: {}'.format(head_list['*']['*'].count))
+
+        print('head_list.probability_sorted_index')
+        for prob, query_str in head_list.probability_sorted_index.iteritems():
+            print ('{} {}'.format(prob, query_str))
+
+
         self.assertEqual(optin_db['*']['*'].count, 500)
         self.assertEqual(head_list['*']['*'].count, 1)
         self.assertEqual(head_list['*'].probability, 0.6)
@@ -219,6 +237,8 @@ class TestHeadList(TestCase):
         self.assertTrue('q7' in head_list)
         self.assertTrue('q7u1' in head_list['q7'])
         self.assertTrue('q7u2' in head_list['q7'])
+
+
 
         # ensure that the sum of all probabilities in the head_list
         # is extremely close to 1.0  (summing floats is frequently imprecise)
