@@ -127,9 +127,7 @@ required_config.add_aggregation(
     lambda config, local_config, arg: (config.delta / config.m_c) - (config.f_c * config.delta / config.m_c)
 )
 
-
-
-# declare the typse of the default data structures
+# declare the types of the default data structures
 #
 # The Blender paper refers to several data structures as databases and vectors.
 # However, digging deeper there is really only one data structure: a mapping of

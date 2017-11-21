@@ -14,7 +14,6 @@ from configman.dotdict import (
 
 from blender.in_memory_structures import (
     URLStats,
-    URLStats,
     Query,
     QueryCollection,
 )
@@ -37,18 +36,6 @@ class TestURLStats(TestCase):
         self.assertEqual(new_stats_counter.count, 0)
         new_stats_counter.increment_count()
         self.assertEqual(new_stats_counter.count, 1)
-
-    def test_subsume(self):
-        config = {}
-        url_stats1 = URLStats(config)
-        url_stats1.count = 17
-
-        url_stats_2 = URLStats(config)
-        url_stats_2.increment_count()
-        url_stats1.subsume(url_stats_2)
-
-        self.assertEqual(url_stats1.count, 18)
-        self.assertEqual(url_stats_2.count, 1)
 
     def test_add(self):
         config = DotDict()
@@ -223,7 +210,6 @@ class TestQueryCollection(TestCase):
         self.assertEqual(q_u_db['a_query'].count, 1)
         self.assertEqual(q_u_db['*'].count, 0)
 
-
     def test_add(self):
         config = DotDict()
         config.url_stats_class = URLStats
@@ -323,7 +309,7 @@ class TestQueryCollection(TestCase):
         '["q2","u3"]\n'
     )
     def test_load(self, mocked_open):
-        mocked_open.return_value.__iter__ = lambda self:self
+        mocked_open.return_value.__iter__ = lambda self: self
         mocked_open.return_value.__next__ = lambda self: self.readline()
 
         config = DotDict()

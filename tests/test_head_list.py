@@ -16,14 +16,6 @@ from configman.dotdict import (
     DotDictWithAcquisition,
 )
 
-
-@jsonpickle.handlers.register(DotDictWithAcquisition, base=True)
-class DotDictHandler(jsonpickle.handlers.BaseHandler):
-    def flatten(self, obj, data):
-        pass
-    def restore(self, obj):
-        pass
-
 from blender.head_list import (
     HeadList,
     HeadListQuery,
@@ -43,6 +35,15 @@ from blender.tests.synthetic_data import (
     load_tiny_data,
     load_small_data
 )
+
+
+@jsonpickle.handlers.register(DotDictWithAcquisition, base=True)
+class DotDictHandler(jsonpickle.handlers.BaseHandler):
+    def flatten(self, obj, data):
+        pass
+
+    def restore(self, obj):
+        pass
 
 
 class TestHeadListQuery(TestCase):
@@ -184,7 +185,7 @@ class TestHeadList(TestCase):
 
         print('head_list.probability_sorted_index')
         for prob, query_str in head_list.probability_sorted_index.iteritems():
-            print ('{} {}'.format(prob, query_str))
+            print('{} {}'.format(prob, query_str))
 
         optin_db.subsume_those_not_present_in(head_list)
         self.assertTrue('*' in optin_db)
@@ -197,26 +198,24 @@ class TestHeadList(TestCase):
         self.assertEqual(head_list['*']['*'].count, 1)
         self.assertEqual(head_list['*'].probability, 0.5)
 
-        print ('pre <*,*>.count: {}'.format(head_list['*']['*'].count))
+        print('pre <*,*>.count: {}'.format(head_list['*']['*'].count))
 
         print('head_list.probability_sorted_index')
         for prob, query_str in head_list.probability_sorted_index.iteritems():
-            print ('{} {}'.format(prob, query_str))
-
+            print('{} {}'.format(prob, query_str))
 
         head_list.subsume_entries_beyond_max_size()
-        print ('post <*,*>.count: {}'.format(head_list['*']['*'].count))
+        print('post <*,*>.count: {}'.format(head_list['*']['*'].count))
 
         print('head_list.probability_sorted_index')
         for prob, query_str in head_list.probability_sorted_index.iteritems():
-            print ('{} {}'.format(prob, query_str))
-
+            print('{} {}'.format(prob, query_str))
 
         self.assertEqual(optin_db['*']['*'].count, 500)
         self.assertEqual(head_list['*']['*'].count, 1)
         self.assertEqual(head_list['*'].probability, 0.6)
 
-        print ("here")
+        print("here")
         head_list.print()
         # why 5 if m is 2?
         #     m selects the number of queries not the number of <q, u> pairs.
@@ -237,8 +236,6 @@ class TestHeadList(TestCase):
         self.assertTrue('q7' in head_list)
         self.assertTrue('q7u1' in head_list['q7'])
         self.assertTrue('q7u2' in head_list['q7'])
-
-
 
         # ensure that the sum of all probabilities in the head_list
         # is extremely close to 1.0  (summing floats is frequently imprecise)

@@ -37,10 +37,10 @@ with open("aol.json", encoding='utf-8') as f:
         except KeyError as k:
             print("missing key {}".format(k))
 
-print ('number of unique users: {}'.format(len(all_data.keys())))
-print ('focused queries:')
+print('number of unique users: {}'.format(len(all_data.keys())))
+print('focused queries:')
 for key, value in focused_queries.items():
-    print ('  {}: {} {}'.format(key, value, float(value) / float(all_data_size)))
+    print('  {}: {} {}'.format(key, value, float(value) / float(all_data_size)))
 
 print('writing aol.data')
 with open("aol.data", encoding='utf-8', mode="w") as o:

@@ -128,7 +128,6 @@ class Query(MutableMapping, JsonPickleBase, RequiredConfig):
         query.probability -= url_stats.probability
         self['*'].subsume(url_stats)
 
-
     def update_probability(self, url_stats):
         # used by HeadList object
         self.probability += url_stats.probability
@@ -144,7 +143,6 @@ class Query(MutableMapping, JsonPickleBase, RequiredConfig):
         for url in self:
             print('{}{}'.format(' ' * indent, url))
             self[url].print(indent + 4)
-
 
     def __getitem__(self, query_str):
         return self.urls[query_str]
@@ -203,7 +201,6 @@ class QueryCollection(MutableMapping, JsonPickleBase, RequiredConfig):
         for query_str in self.queries:
             self[query_str].touch('*')
 
-
     def add(self, q_u_tuple):
         """add a new <q, u> tuple to this collecton"""
         q, u = q_u_tuple
@@ -217,7 +214,7 @@ class QueryCollection(MutableMapping, JsonPickleBase, RequiredConfig):
     def subsume_those_not_present_in(self, other_query_collection):
         """take all <q, u> records in this collection that are not in the other_query_url_mapping and
         merge their statistics into this collection's <*, *> entry"""
-        print ('===== self.count {}'.format(self.count))
+        print('===== self.count {}'.format(self.count))
         to_be_deleted_list = []
         if '*' not in self.queries:
             self['*'].touch('*')
@@ -252,7 +249,6 @@ class QueryCollection(MutableMapping, JsonPickleBase, RequiredConfig):
         for query_str in self:
             print('{}{}'.format(' ' * indent, query_str))
             self[query_str].print(indent + 4)
-
 
     # this class implements the MuteableMapping Abstract Base Class.  These are the implementation of
     # the required methods for that ABC.

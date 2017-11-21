@@ -1,10 +1,12 @@
 from functools import partial
 
+
 def load_synthetic_data_set(data_set, db):
     for q, u, c in data_set:
         for i in range(c):
             db.add((q, u))
     return db
+
 
 minimal_constants = {
     "epsilon": 1.0,
@@ -32,8 +34,6 @@ q1_q1u1_q2_q2u1_q2u2 = [
     ('q2', 'q2u2', 100)
 ]
 load_q1_q1u1_q2_q2u1_q2u2 = partial(load_synthetic_data_set, q1_q1u1_q2_q2u1_q2u2)
-
-
 
 tiny_set = [
     ('q1', 'q1u1', 10),

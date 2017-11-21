@@ -8,16 +8,13 @@ from configman.dotdict import (
 )
 
 from blender.in_memory_structures import (
-    URLStats,
     Query,
-    QueryCollection,
 )
 
 from blender.client_structures import (
     ClientQuery,
     ClientUrlStats
 )
-
 
 
 class TestClientUrlStats(TestCase):
