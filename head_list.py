@@ -39,6 +39,7 @@ class HeadListQuery(Query):
     def __init__(self, config):
         super(HeadListQuery, self).__init__(config)
         self.tau = 0.0
+        self.kappa_q = 0
 
     def calculate_tau(self):
         self.tau = (
@@ -46,6 +47,7 @@ class HeadListQuery(Query):
             /
             (exp(self.config.epsilon_prime_u) + self.count - 1.0)
         )
+        self.kappa_q = len(self)
 
     def subsume(self, query, url_str):
         # this method does not have to chain the subsume down the inheritance heirarchy nor the
@@ -113,6 +115,7 @@ class HeadList(QueryCollection):
         # an index based on the statistic.
         self.probability_sorted_index = SortedDictOfLists()
         self.tau = 0.0
+        self.k = 0
 
     def create_headlist(self, optin_database_s):
         """this is the implementation of the Figure 3 CreateHeadList from the Blender paper"""
@@ -177,6 +180,7 @@ class HeadList(QueryCollection):
 
     def calculate_tau(self):
         """from Figure 6 LocalAlg, lines 4-6"""
+        self.kappa = len(self)
         self.tau = (
             (exp(self.config.epsilon_prime_q) + (self.config.delta_prime_q / 2.0) * (self.count - 1))
             /
