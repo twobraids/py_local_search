@@ -13,39 +13,6 @@ from configman import (
 
 required_config = Namespace()
 
-required_config.namespace('optin_db')
-required_config.optin_db.add_option(
-    name="optin_db_class",
-    default="blender.in_memory_structures.QueryCollection",
-    from_string_converter=class_converter,
-    doc="dependency injection of a class to serve as non-headlist <q, u> databases"
-)
-
-required_config.namespace('head_list_db')
-required_config.head_list_db.add_option(
-    name="head_list_class",
-    default="blender.head_list.HeadList",
-    from_string_converter=class_converter,
-    doc="dependency injection of a class to serve as the HeadList"
-)
-
-required_config.namespace('client_db')
-required_config.client_db.add_option(
-    name="client_db_class",
-    default="blender.in_memory_structures.QueryCollection",
-    from_string_converter=class_converter,
-    doc="dependency injection of a class to serve as the Optin Database"
-)
-
-required_config.namespace('final_probabilities')
-required_config.final_probabilities.add_option(
-    name="final_probabilites_db_class",
-    default="blender.head_list.HeadList",
-    from_string_converter=class_converter,
-    doc="dependency injection of a class to serve final probability vector"
-)
-
-
 required_config.add_option(
     "epsilon",
     default=4.0,  # set from text, p11, 1st paragraph
@@ -127,8 +94,39 @@ required_config.add_aggregation(
     lambda config, local_config, arg: (config.delta / config.m_c) - (config.f_c * config.delta / config.m_c)
 )
 
-# declare the types of the default data structures
-#
+# declare the types of the default data structures for use in dependency injection
+required_config.namespace('optin_db')
+required_config.optin_db.add_option(
+    name="optin_db_class",
+    default="blender.in_memory_structures.QueryCollection",
+    from_string_converter=class_converter,
+    doc="dependency injection of a class to serve as non-headlist <q, u> databases"
+)
+
+required_config.namespace('head_list_db')
+required_config.head_list_db.add_option(
+    name="head_list_class",
+    default="blender.head_list.HeadList",
+    from_string_converter=class_converter,
+    doc="dependency injection of a class to serve as the HeadList"
+)
+
+required_config.namespace('client_db')
+required_config.client_db.add_option(
+    name="client_db_class",
+    default="blender.in_memory_structures.QueryCollection",
+    from_string_converter=class_converter,
+    doc="dependency injection of a class to serve as the Optin Database"
+)
+
+required_config.namespace('final_probabilities')
+required_config.final_probabilities.add_option(
+    name="final_probabilites_db_class",
+    default="blender.head_list.HeadList",
+    from_string_converter=class_converter,
+    doc="dependency injection of a class to serve final probability vector"
+)
+
 # The Blender paper refers to several data structures as databases and vectors.
 # However, digging deeper there is really only one data structure: a mapping of
 # mappings to statistical data. The first mapping level uses queries as the key.
@@ -141,14 +139,14 @@ required_config.add_aggregation(
 # role that the data structure represents.
 #
 # For example, the "optin_db" is represented by using the Top Level Structure,
-# "optin_structures.QueryCollection", which is keyed by the query.
+# "blender.optin_structures.QueryCollection", which is keyed by the query.
 #
 # optin_db['some query'] returns an instance of the 2nd level of the
-# structure, an instance of "in_memory_structures.Query".
+# structure, an instance of "blender.in_memory_structures.Query".
 # This is itself a mapping which is keyed by url.
 #
 # optin_db['some query']['some/url'] returns an instance of the 3rd level, a url
-# stats object, "in_memory_structures.URLStats".  This final
+# stats object, "blender.in_memory_structures.URLStats".  This final
 # lowest level object contains stats and methods for individual urls.
 #
 # this section consolidates the declaration of the mapping structures into
