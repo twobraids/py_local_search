@@ -71,7 +71,6 @@ class TestHeadListQuery(TestCase):
         urls.calculate_tau()
 
         self.assertEqual(urls.count, 2.0)
-        print(urls.tau)
         self.assertAlmostEqual(urls.tau, 0.865529289)
 
 
@@ -176,16 +175,10 @@ class TestHeadList(TestCase):
             config.optin_db.optin_db_class(config.optin_db)
         )
         head_list = create_preliminary_headlist(config.head_list_db, optin_db)
-        print('prelim headlist')
-        head_list.print()
         self.assertTrue('*' in head_list)
         self.assertTrue('*' not in optin_db)
         # only six should be in the headlist including '*', because all other were below threshold
         self.assertEqual(head_list.count, 6)
-
-        print('head_list.probability_sorted_index')
-        for prob, query_str in head_list.probability_sorted_index.iteritems():
-            print('{} {}'.format(prob, query_str))
 
         optin_db.subsume_those_not_present_in(head_list)
         self.assertTrue('*' in optin_db)
@@ -198,16 +191,8 @@ class TestHeadList(TestCase):
         self.assertEqual(head_list['*']['*'].count, 1)
         self.assertEqual(head_list['*'].probability, 0.5)
 
-        print('pre <*,*>.count: {}'.format(head_list['*']['*'].count))
-
-        print('head_list.probability_sorted_index')
-        for prob, query_str in head_list.probability_sorted_index.iteritems():
-            print('{} {}'.format(prob, query_str))
-
         head_list.subsume_entries_beyond_max_size()
-        print('post <*,*>.count: {}'.format(head_list['*']['*'].count))
 
-        print('head_list.probability_sorted_index')
         for prob, query_str in head_list.probability_sorted_index.iteritems():
             print('{} {}'.format(prob, query_str))
 
@@ -215,8 +200,6 @@ class TestHeadList(TestCase):
         self.assertEqual(head_list['*']['*'].count, 1)
         self.assertEqual(head_list['*'].probability, 0.6)
 
-        print("here")
-        head_list.print()
         # why 5 if m is 2?
         #     m selects the number of queries not the number of <q, u> pairs.
         #     2 queries were selected and they each had 2 urls for a total of 4

@@ -204,17 +204,12 @@ class QueryCollection(MutableMapping, JsonPickleBase, RequiredConfig):
     def add(self, q_u_tuple):
         """add a new <q, u> tuple to this collecton"""
         q, u = q_u_tuple
-        if (q == '*' and u =='*'):
-            print('pre* count {}'.format(self.count))
         self.queries[q].add(u)
         self.count += 1
-        if (q == '*' and u =='*'):
-            print('post* count {}'.format(self.count))
 
     def subsume_those_not_present_in(self, other_query_collection):
         """take all <q, u> records in this collection that are not in the other_query_url_mapping and
         merge their statistics into this collection's <*, *> entry"""
-        print('===== self.count {}'.format(self.count))
         to_be_deleted_list = []
         if '*' not in self.queries:
             self['*'].touch('*')

@@ -52,7 +52,9 @@ class HeadListQuery(Query):
         # containment heirarchy because the headlist only limits the count of a <q, u> pair to one
         # instance.
         url_stats = query[url_str]
+        query.probability -= url_stats.probability
         self.probability += url_stats.probability
+        self['*'].probability += url_stats.probability
         url_stats.probability = 0.0
 
     def calculate_probability_relative_to(self, other_query_url_mapping, query_str="*", b=0.0, head_list=None):
@@ -121,9 +123,7 @@ class HeadList(QueryCollection):
             y = laplace(self.config.b_s)  # TODO: understand and select correct parameter
             if optin_database_s[query_str][url_str].count + y > self.config.tau:
                 self.add((query_str, url_str))
-        print('adding <*, *> in create_headlist')
         self.add(('*', '*'))
-        #self['*'].touch('*')  # add <*, *> with a count of 0
 
     def calculate_probabilities_relative_to(self, other_query_url_mapping):
         """This is from the Blender paper, Figure 4"""
@@ -143,26 +143,22 @@ class HeadList(QueryCollection):
         # Figure 4: line 14
         to_be_deleted_list = []
         if '*' not in self:
-            print('adding <*, *> in subsume_entries_beyond_max_size')
             self.add(('*', '*'))
         for i, (probability, query_str) in enumerate(self.probability_sorted_index.iter_records()):
-            print("{} head_list.count {} {}".format(i, self.count, query_str))
-            if i >= self.config.m:
-                the_query = self[query_str]
-                for url_str in the_query.keys():
-                    print('subsuming <{}, {}>'.format(query_str, url_str))
-                    print('before <*, *> count {}'.format(self['*']['*'].count))
-                    print('before * count {}'.format(self['*'].count))
-                    self.probability_sorted_index[the_query.probability].remove(query_str)
-                    self['*'].subsume(the_query, url_str)
-                    self.probability_sorted_index[the_query.probability].append(query_str)
-                    print('after <*, *> count {}'.format(self['*']['*'].count))
-                    print('after * count {}'.format(self['*'].count))
-                    # we need to remove the <q, u> pair but cannot do so while the collection is
-                    # in iteration.  We keep a list of <q, u> pairs to remove and delete them after
-                    # iteration is complete
-                    to_be_deleted_list.append((query_str, url_str))
+            if i < self.config.m:
+                continue
+            the_query = self[query_str]
+            for url_str in the_query.keys():
+                self.probability_sorted_index[the_query.probability].remove(query_str)
+                self['*'].subsume(the_query, url_str)
+                self.probability_sorted_index[the_query.probability].append(query_str)
+                # we need to remove the <q, u> pair but cannot do so while the collection is
+                # in iteration.  We keep a list of <q, u> pairs to remove and delete them after
+                # iteration is complete
+                to_be_deleted_list.append((query_str, url_str))
+
         for query_str, url_str in to_be_deleted_list:
+            self.count -= self[query_str][url_str].count
             del self[query_str][url_str]
             if not len(self[query_str]):
                 del self[query_str]
