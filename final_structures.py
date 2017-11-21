@@ -7,9 +7,9 @@ from blender.in_memory_structures import (
 # 3rd Level Structures
 #     Contains a single url's stats
 #     see constructor for attributes
-class ClientUrlStats(URLStats):
+class ClientURLStats(URLStats):
     def __init__(self, config, count=0):
-        super(ClientUrlStats, self).__init__(config, count)
+        super(ClientURLStats, self).__init__(config, count)
         self.probability = 0.0  # the computed probability of this URL
         self.variance = 0.0  # the variance of this URL
 

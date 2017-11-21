@@ -179,11 +179,11 @@ default_data_structures = {  # keyed by the use case
     },
     "client_db": {
         # level 1
-        "client_db_class": "blender.client_structures.ClientUrlStats",
+        "client_db_class": "blender.client_structures.ClientQueryCollection",
         # level 2
-        "query_class": "blender.client_structures.Query",
+        "query_class": "blender.client_structures.ClientQuery",
         # level 3
-        "url_stats_class": "blender.client_structures.URLStats"
+        "url_stats_class": "blender.client_structures.ClientURLStats"
     },
     "final_probabilities": {
         # level 1

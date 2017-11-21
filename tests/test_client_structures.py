@@ -13,7 +13,7 @@ from blender.in_memory_structures import (
 
 from blender.client_structures import (
     ClientQuery,
-    ClientUrlStats
+    ClientURLStats
 )
 
 
@@ -21,14 +21,14 @@ class TestClientUrlStats(TestCase):
 
     def test_instantiation(self):
         config = DotDict()
-        config.url_stats_class = ClientUrlStats
+        config.url_stats_class = ClientURLStats
         urls = Query(config)
         self.assertTrue(urls.config is config)
         self.assertTrue(isinstance(urls.urls, Mapping))
 
     def test_add(self):
         config = DotDict()
-        config.url_stats_class = ClientUrlStats
+        config.url_stats_class = ClientURLStats
         urls = Query(config)
         urls.add('fred')
 
@@ -42,7 +42,7 @@ class TestClientUrlStats(TestCase):
 
     def test_touch(self):
         config = DotDict()
-        config.url_stats_class = ClientUrlStats
+        config.url_stats_class = ClientURLStats
         urls = Query(config)
         urls.touch('fred')
 
@@ -61,11 +61,11 @@ class TestClientUrlStats(TestCase):
 
     def test_subsume(self):
         config = {}
-        stats_counter_1 = ClientUrlStats(config)
+        stats_counter_1 = ClientURLStats(config)
         stats_counter_1.count = 17
         stats_counter_1.probability = 0.5
 
-        stats_counter_2 = ClientUrlStats(config)
+        stats_counter_2 = ClientURLStats(config)
         stats_counter_2.increment_count()
         stats_counter_2.probability = 0.25
         stats_counter_1.subsume(stats_counter_2)
