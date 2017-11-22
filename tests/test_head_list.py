@@ -70,7 +70,7 @@ class TestHeadListQuery(TestCase):
         urls.add('u2')
         urls.calculate_tau()
 
-        self.assertEqual(urls.count, 2.0)
+        self.assertEqual(urls.number_of_urls, 2.0)
         self.assertAlmostEqual(urls.tau, 0.865529289)
 
 

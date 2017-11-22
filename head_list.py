@@ -43,9 +43,9 @@ class HeadListQuery(Query):
 
     def calculate_tau(self):
         self.tau = (
-            (exp(self.config.epsilon_prime_u) + (self.config.delta_prime_u / 2.0) * (self.count - 1.0))
+            (exp(self.config.epsilon_prime_u) + (self.config.delta_prime_u / 2.0) * (self.number_of_urls - 1.0))
             /
-            (exp(self.config.epsilon_prime_u) + self.count - 1.0)
+            (exp(self.config.epsilon_prime_u) + self.number_of_urls - 1.0)
         )
         self.kappa_q = len(self)
 

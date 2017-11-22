@@ -207,8 +207,8 @@ class TestQueryCollection(TestCase):
         self.assertTrue('a_url' in q_u_db['a_query'])
         self.assertTrue('*' in q_u_db['a_query'])
         self.assertEqual(q_u_db.number_of_query_url_pairs, 1)
-        self.assertEqual(q_u_db['a_query'].count, 1)
-        self.assertEqual(q_u_db['*'].count, 0)
+        self.assertEqual(q_u_db['a_query'].number_of_urls, 1)
+        self.assertEqual(q_u_db['*'].number_of_urls, 0)
 
     def test_add(self):
         config = DotDict()
@@ -220,7 +220,7 @@ class TestQueryCollection(TestCase):
         self.assertTrue('a_query' in q_u_db)
         self.assertTrue('a_url' in q_u_db['a_query'])
         self.assertEqual(q_u_db.number_of_query_url_pairs, 1)
-        self.assertEqual(q_u_db['a_query'].count, 1)
+        self.assertEqual(q_u_db['a_query'].number_of_urls, 1)
 
         q_u_db.add(('a_query', 'a_url'))
         self.assertTrue('a_query' in q_u_db)
@@ -323,8 +323,8 @@ class TestQueryCollection(TestCase):
         self.assertTrue("q1" in reference_q_u_db)
         self.assertTrue("u1" in reference_q_u_db["q1"])
         self.assertTrue("u2" in reference_q_u_db["q1"])
-        self.assertEqual(reference_q_u_db["q1"].count, 2)
+        self.assertEqual(reference_q_u_db["q1"].number_of_urls, 2)
         self.assertTrue("q2" in reference_q_u_db)
         self.assertTrue("u3" in reference_q_u_db["q2"])
-        self.assertEqual(reference_q_u_db["q2"].count, 1)
+        self.assertEqual(reference_q_u_db["q2"].number_of_urls, 1)
 

@@ -67,7 +67,7 @@ class ClientQuery(Query):
             # does it mean that <q1, u1>, <q1, u2> is counted as two queries
             # or only one?
             fraction_of_this_query_in_other_mapping = (
-                other_query_url_mapping[query_str].count / other_query_url_mapping.number_of_query_url_pairs
+                other_query_url_mapping[query_str].number_of_urls / other_query_url_mapping.number_of_query_url_pairs
             )
             ratio = (1.0 - head_list.tau) / (head_list.kappa - 1.0)
             # from Figure 5, line 12
@@ -89,7 +89,7 @@ class ClientQuery(Query):
             for url_str in head_list[query_str]:
                 other_url = other_query_url_mapping[query_str][url_str]
                 # Figure 5, line 15
-                r_c_q_u = other_url.count / other_query_url_mapping.number_of_query_url_pairs  # TODO: rename
+                r_c_q_u = other_url.number_of_urls / other_query_url_mapping.number_of_query_url_pairs  # TODO: rename
                 # Figure 5, line 16 implemented in the
                 self[query_str][url_str].calculate_probability_relative_to(
                     other_query_url_mapping,

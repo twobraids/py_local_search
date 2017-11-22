@@ -111,7 +111,7 @@ class Query(MutableMapping, JsonPickleBase, RequiredConfig):
     def __init__(self, config):
         self.config = config
         self.urls = defaultdict(partial(self.config.url_stats_class, self.config))
-        self.count = 0
+        self.number_of_urls = 0
         self.probability = 0
         self.variance = 0
 
@@ -121,10 +121,10 @@ class Query(MutableMapping, JsonPickleBase, RequiredConfig):
 
     def subsume(self, query, url_str):
         url_stats = query[url_str]
-        self.count += url_stats.count
+        self.number_of_urls += url_stats.count
         self.probability += url_stats.probability
         #self.variance
-        query.count -= url_stats.count
+        query.number_of_urls -= url_stats.count
         query.probability -= url_stats.probability
         self['*'].subsume(url_stats)
 
@@ -134,10 +134,10 @@ class Query(MutableMapping, JsonPickleBase, RequiredConfig):
 
     def add(self, url):
         self.urls[url].increment_count()
-        self.count += 1
+        self.number_of_urls += 1
 
     def print(self, indent):
-        print('{}count={}'.format(' ' * indent, self.count))
+        print('{}count={}'.format(' ' * indent, self.number_of_urls))
         print('{}prob={}'.format(' ' * indent, self.probability))
         print('{}vari={}'.format(' ' * indent, self.variance))
         for url in self:
@@ -149,11 +149,11 @@ class Query(MutableMapping, JsonPickleBase, RequiredConfig):
 
     def __setitem__(self, url, item):
         try:
-            self.count -= self.urls[url].count
+            self.number_of_urls -= self.urls[url].count
         except KeyError:
             pass
         self.urls[url] = item
-        self.count += item.count
+        self.number_of_urls += item.count
 
     def __delitem__(self, url):
         del self.urls[url]
