@@ -95,7 +95,7 @@ class TestURLStats(TestCase):
 
         other_url_url_mapping = MagicMock()
         other_url_url_mapping['q1']['u1'].count = 10.0
-        other_url_url_mapping.count = 100.0
+        other_url_url_mapping.number_of_query_url_pairs = 100.0
 
         config = {}
         stats_counter_1 = URLStats(config)
@@ -109,7 +109,7 @@ class TestURLStats(TestCase):
 
     def test_calculate_variance_relative_to(self):
         other_url_url_mapping = MagicMock()
-        other_url_url_mapping.count = 100.0
+        other_url_url_mapping.number_of_query_url_pairs = 100.0
 
         config = {}
         stats_counter_1 = URLStats(config)
@@ -193,7 +193,7 @@ class TestQueryCollection(TestCase):
 
         self.assertTrue(q_u_db.config is config)
         self.assertTrue(isinstance(q_u_db.queries, Mapping))
-        self.assertEqual(q_u_db.count, 0)
+        self.assertEqual(q_u_db.number_of_query_url_pairs, 0)
 
     def test_append_star_values(self):
         config = DotDict()
@@ -206,7 +206,7 @@ class TestQueryCollection(TestCase):
         self.assertTrue('a_query' in q_u_db)
         self.assertTrue('a_url' in q_u_db['a_query'])
         self.assertTrue('*' in q_u_db['a_query'])
-        self.assertEqual(q_u_db.count, 1)
+        self.assertEqual(q_u_db.number_of_query_url_pairs, 1)
         self.assertEqual(q_u_db['a_query'].count, 1)
         self.assertEqual(q_u_db['*'].count, 0)
 
@@ -219,14 +219,14 @@ class TestQueryCollection(TestCase):
 
         self.assertTrue('a_query' in q_u_db)
         self.assertTrue('a_url' in q_u_db['a_query'])
-        self.assertEqual(q_u_db.count, 1)
+        self.assertEqual(q_u_db.number_of_query_url_pairs, 1)
         self.assertEqual(q_u_db['a_query'].count, 1)
 
         q_u_db.add(('a_query', 'a_url'))
         self.assertTrue('a_query' in q_u_db)
         self.assertTrue('a_url' in q_u_db['a_query'])
         self.assertEqual(q_u_db['a_query']['a_url'].count, 2)
-        self.assertEqual(q_u_db.count, 2)
+        self.assertEqual(q_u_db.number_of_query_url_pairs, 2)
 
     def test_iter_records(self):
         config = DotDict()
@@ -254,7 +254,7 @@ class TestQueryCollection(TestCase):
         # count of keys
         self.assertEqual(len(q_u_db), 4)
         # count of all pairs even duplicates
-        self.assertEqual(q_u_db.count, 8)
+        self.assertEqual(q_u_db.number_of_query_url_pairs, 8)
 
         self.assertEqual(q_u_db['q1']['u1'].count, 2)
         self.assertEqual(q_u_db['q2']['u1'].count, 1)
@@ -319,7 +319,7 @@ class TestQueryCollection(TestCase):
 
         reference_q_u_db.load("somefile")
 
-        self.assertEqual(reference_q_u_db.count, 3)
+        self.assertEqual(reference_q_u_db.number_of_query_url_pairs, 3)
         self.assertTrue("q1" in reference_q_u_db)
         self.assertTrue("u1" in reference_q_u_db["q1"])
         self.assertTrue("u2" in reference_q_u_db["q1"])

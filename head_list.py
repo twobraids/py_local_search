@@ -161,7 +161,7 @@ class HeadList(QueryCollection):
                 to_be_deleted_list.append((query_str, url_str))
 
         for query_str, url_str in to_be_deleted_list:
-            self.count -= self[query_str][url_str].count
+            self.number_of_query_url_pairs -= self[query_str][url_str].count
             del self[query_str][url_str]
             if not len(self[query_str]):
                 del self[query_str]
@@ -182,9 +182,9 @@ class HeadList(QueryCollection):
         """from Figure 6 LocalAlg, lines 4-6"""
         self.kappa = len(self)
         self.tau = (
-            (exp(self.config.epsilon_prime_q) + (self.config.delta_prime_q / 2.0) * (self.count - 1))
+            (exp(self.config.epsilon_prime_q) + (self.config.delta_prime_q / 2.0) * (self.number_of_query_url_pairs - 1))
             /
-            (exp(self.config.epsilon_prime_q) + self.count - 1)
+            (exp(self.config.epsilon_prime_q) + self.number_of_query_url_pairs - 1)
         )
         for query_str in self.keys():
             self[query_str].calculate_tau()

@@ -178,7 +178,7 @@ class TestHeadList(TestCase):
         self.assertTrue('*' in head_list)
         self.assertTrue('*' not in optin_db)
         # only six should be in the headlist including '*', because all other were below threshold
-        self.assertEqual(head_list.count, 6)
+        self.assertEqual(head_list.number_of_query_url_pairs, 6)
 
         optin_db.subsume_those_not_present_in(head_list)
         self.assertTrue('*' in optin_db)
@@ -206,7 +206,7 @@ class TestHeadList(TestCase):
         #     1 query was rejected and it had 1 url
         #     the <*, *> had a count of 1
         #     with 1 in <*, *> and 4 in the selected list, the final total is 5
-        self.assertEqual(head_list.count, 5)
+        self.assertEqual(head_list.number_of_query_url_pairs, 5)
 
         self.assertTrue('q1' not in head_list)
         self.assertTrue('q2' not in head_list)

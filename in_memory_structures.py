@@ -78,14 +78,14 @@ class URLStats(JsonPickleBase):
     def calculate_probability_relative_to(self, other_query_url_mapping, query_str="*", url_str="*", b=0.0, head_list=None):
         y = laplace(b)  # TODO: understand and select correct parameter
         self.probability = (
-            (other_query_url_mapping[query_str][url_str].count + y) / other_query_url_mapping.count
+            (other_query_url_mapping[query_str][url_str].count + y) / other_query_url_mapping.number_of_query_url_pairs
         )
 
     def calculate_variance_relative_to(self, other_query_url_mapping, query_str='*', url_str='*', b_t=0.0):
         self.variance = (
-            (self.probability * (1.0 - self.probability)) / (other_query_url_mapping.count - 1.0)
+            (self.probability * (1.0 - self.probability)) / (other_query_url_mapping.number_of_query_url_pairs - 1.0)
             +
-            (2.0 * b_t * b_t) / (other_query_url_mapping.count * (other_query_url_mapping.count - 1.0))
+            (2.0 * b_t * b_t) / (other_query_url_mapping.number_of_query_url_pairs * (other_query_url_mapping.number_of_query_url_pairs - 1.0))
         )
 
 
@@ -194,7 +194,7 @@ class QueryCollection(MutableMapping, JsonPickleBase, RequiredConfig):
         # allows the instantiated URL class to use dependency injection too, by passing the
         # the configuration in during instantiation
         self.queries = defaultdict(partial(self.config.query_class, self.config))
-        self.count = 0
+        self.number_of_query_url_pairs = 0
 
     def append_star_values(self):
         # from 1-3 of EstimateClientProbabilities Figure 5.
@@ -205,7 +205,7 @@ class QueryCollection(MutableMapping, JsonPickleBase, RequiredConfig):
         """add a new <q, u> tuple to this collecton"""
         q, u = q_u_tuple
         self.queries[q].add(u)
-        self.count += 1
+        self.number_of_query_url_pairs += 1
 
     def subsume_those_not_present_in(self, other_query_collection):
         """take all <q, u> records in this collection that are not in the other_query_url_mapping and
@@ -240,7 +240,7 @@ class QueryCollection(MutableMapping, JsonPickleBase, RequiredConfig):
                 self.add(record)
 
     def print(self, indent=0):
-        print('{}count={}'.format(' ' * indent, self.count))
+        print('{}count={}'.format(' ' * indent, self.number_of_query_url_pairs))
         for query_str in self:
             print('{}{}'.format(' ' * indent, query_str))
             self[query_str].print(indent + 4)

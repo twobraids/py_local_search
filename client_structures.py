@@ -22,7 +22,7 @@ class ClientURLStats(URLStats):
         # broken down into separate steps to help clarity
         term_1 = r_c_q_u
         term_2 = (1.0 - other_query.tau) * head_list.tau * other_query.probability / (head_list_query.kappa_q - 1)
-        term_3 = (1.0 - other_query.tau) * (1.0 - other_query.probability) / ((head_list. count - 1) * head_list_query.kappa_q)
+        term_3 = (1.0 - other_query.tau) * (1.0 - other_query.probability) / ((head_list.number_of_query_url_pairs - 1) * head_list_query.kappa_q)
         term_4 = head_list.tau * (head_list_query.tau - ((1 - head_list_query.tau) / (head_list_query.kappa_q - 1)))
         self.probability = (term_1 - term_2 - term_3) / term_4
 
@@ -31,8 +31,8 @@ class ClientURLStats(URLStats):
         head_list_query = head_list[query_str]
         # from Figure 5, line 17
         # broken down into separate steps to help clarity
-        term_1 = r_c_q_u * (1.0 - r_c_q_u) / (other_query_url_mapping.count - 1.0)
-        term_2a = 2.0 * other_query_url_mapping.count / (other_query_url_mapping.count - 1.0)
+        term_1 = r_c_q_u * (1.0 - r_c_q_u) / (other_query_url_mapping.number_of_query_url_pairs - 1.0)
+        term_2a = 2.0 * other_query_url_mapping.number_of_query_url_pairs / (other_query_url_mapping.number_of_query_url_pairs - 1.0)
         # note t1 / t2 / t3 here instead of the equivalent t1 / (t2 * t3)
         term_2b = (1.0 - head_list.tau) / (head_list.kappa - 1.0) / head_list_query.kappa_q
         term_2c = (head_list.tau - head_list.tau * head_list_query.tau) / (head_list_query.kappa_q - 1.0)
@@ -67,7 +67,7 @@ class ClientQuery(Query):
             # does it mean that <q1, u1>, <q1, u2> is counted as two queries
             # or only one?
             fraction_of_this_query_in_other_mapping = (
-                other_query_url_mapping[query_str].count / other_query_url_mapping.count
+                other_query_url_mapping[query_str].count / other_query_url_mapping.number_of_query_url_pairs
             )
             ratio = (1.0 - head_list.tau) / (head_list.kappa - 1.0)
             # from Figure 5, line 12
@@ -82,14 +82,14 @@ class ClientQuery(Query):
                 *
                 (fraction_of_this_query_in_other_mapping * (1 - fraction_of_this_query_in_other_mapping))
                 /
-                (other_query_url_mapping.count - 1)
+                (other_query_url_mapping.number_of_query_url_pairs - 1)
             )
 
             # from Figure 5, line 14
             for url_str in head_list[query_str]:
                 other_url = other_query_url_mapping[query_str][url_str]
                 # Figure 5, line 15
-                r_c_q_u = other_url.count / other_query_url_mapping.count  # TODO: rename
+                r_c_q_u = other_url.count / other_query_url_mapping.number_of_query_url_pairs  # TODO: rename
                 # Figure 5, line 16 implemented in the
                 self[query_str][url_str].calculate_probability_relative_to(
                     other_query_url_mapping,
