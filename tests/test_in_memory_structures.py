@@ -25,17 +25,17 @@ class TestURLStats(TestCase):
         config = {}
         new_stats_counter = URLStats(config)
         self.assertTrue(new_stats_counter.config is config)
-        self.assertEqual(new_stats_counter.count, 0)
+        self.assertEqual(new_stats_counter.number_of_repetitions, 0)
 
         new_stats_counter = URLStats(config, 16)
-        self.assertEqual(new_stats_counter.count, 16)
+        self.assertEqual(new_stats_counter.number_of_repetitions, 16)
 
     def test_increment_count(self):
         config = {}
         new_stats_counter = URLStats(config)
-        self.assertEqual(new_stats_counter.count, 0)
+        self.assertEqual(new_stats_counter.number_of_repetitions, 0)
         new_stats_counter.increment_count()
-        self.assertEqual(new_stats_counter.count, 1)
+        self.assertEqual(new_stats_counter.number_of_repetitions, 1)
 
     def test_add(self):
         config = DotDict()
@@ -44,12 +44,12 @@ class TestURLStats(TestCase):
         urls.add('fred')
 
         self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].count, 1)
+        self.assertEqual(urls['fred'].number_of_repetitions, 1)
 
         urls.add('fred')
 
         self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].count, 2)
+        self.assertEqual(urls['fred'].number_of_repetitions, 2)
 
     def test_touch(self):
         config = DotDict()
@@ -58,22 +58,22 @@ class TestURLStats(TestCase):
         urls.touch('fred')
 
         self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].count, 0)
+        self.assertEqual(urls['fred'].number_of_repetitions, 0)
 
         urls.touch('fred')
 
         self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].count, 0)
+        self.assertEqual(urls['fred'].number_of_repetitions, 0)
 
         urls.add('fred')
 
         self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].count, 1)
+        self.assertEqual(urls['fred'].number_of_repetitions, 1)
 
     def test_subsume(self):
         config = {}
         url_stats1 = URLStats(config)
-        url_stats1.count = 17
+        url_stats1.number_of_repetitions = 17
         url_stats1.probability = 0.5
 
         url_stats_2 = URLStats(config)
@@ -82,8 +82,8 @@ class TestURLStats(TestCase):
 
         url_stats1.subsume(url_stats_2)
 
-        self.assertEqual(url_stats1.count, 18)
-        self.assertEqual(url_stats_2.count, 0)
+        self.assertEqual(url_stats1.number_of_repetitions, 18)
+        self.assertEqual(url_stats_2.number_of_repetitions, 0)
         self.assertEqual(url_stats1.probability, 0.75)
 
     @patch('blender.in_memory_structures.laplace',)
@@ -94,7 +94,7 @@ class TestURLStats(TestCase):
         laplace_mock.return_value = 0.0
 
         other_url_url_mapping = MagicMock()
-        other_url_url_mapping['q1']['u1'].count = 10.0
+        other_url_url_mapping['q1']['u1'].number_of_repetitions = 10.0
         other_url_url_mapping.number_of_query_url_pairs = 100.0
 
         config = {}
@@ -138,12 +138,12 @@ class TestQuery(TestCase):
         urls.add('fred')
 
         self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].count, 1)
+        self.assertEqual(urls['fred'].number_of_repetitions, 1)
 
         urls.add('fred')
 
         self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].count, 2)
+        self.assertEqual(urls['fred'].number_of_repetitions, 2)
 
     def test_touch(self):
         config = DotDict()
@@ -152,17 +152,17 @@ class TestQuery(TestCase):
         urls.touch('fred')
 
         self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].count, 0)
+        self.assertEqual(urls['fred'].number_of_repetitions, 0)
 
         urls.touch('fred')
 
         self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].count, 0)
+        self.assertEqual(urls['fred'].number_of_repetitions, 0)
 
         urls.add('fred')
 
         self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].count, 1)
+        self.assertEqual(urls['fred'].number_of_repetitions, 1)
 
     def test_subsume(self):
         config = DotDict()
@@ -170,16 +170,16 @@ class TestQuery(TestCase):
         a_query = Query(config)
         a_query.add('*')
         star_url = a_query['*']
-        star_url.count = 50
+        star_url.number_of_repetitions = 50
         star_url.probability = 0.5
         a_query.add('other_url')
         other_url = a_query['other_url']
-        other_url.count = 25
+        other_url.number_of_repetitions = 25
         other_url.probability = 0.25
 
         a_query.subsume(a_query, 'other_url')
 
-        self.assertEqual(star_url.count, 75)
+        self.assertEqual(star_url.number_of_repetitions, 75)
         self.assertEqual(star_url.probability, 0.75)
 
 
@@ -225,7 +225,7 @@ class TestQueryCollection(TestCase):
         q_u_db.add(('a_query', 'a_url'))
         self.assertTrue('a_query' in q_u_db)
         self.assertTrue('a_url' in q_u_db['a_query'])
-        self.assertEqual(q_u_db['a_query']['a_url'].count, 2)
+        self.assertEqual(q_u_db['a_query']['a_url'].number_of_repetitions, 2)
         self.assertEqual(q_u_db.number_of_query_url_pairs, 2)
 
     def test_iter_records(self):
@@ -256,12 +256,12 @@ class TestQueryCollection(TestCase):
         # count of all pairs even duplicates
         self.assertEqual(q_u_db.number_of_query_url_pairs, 8)
 
-        self.assertEqual(q_u_db['q1']['u1'].count, 2)
-        self.assertEqual(q_u_db['q2']['u1'].count, 1)
-        self.assertEqual(q_u_db['q2']['u2'].count, 1)
-        self.assertEqual(q_u_db['q3']['u3'].count, 1)
-        self.assertEqual(q_u_db['q4']['u4'].count, 2)
-        self.assertEqual(q_u_db['q4']['u5'].count, 1)
+        self.assertEqual(q_u_db['q1']['u1'].number_of_repetitions, 2)
+        self.assertEqual(q_u_db['q2']['u1'].number_of_repetitions, 1)
+        self.assertEqual(q_u_db['q2']['u2'].number_of_repetitions, 1)
+        self.assertEqual(q_u_db['q3']['u3'].number_of_repetitions, 1)
+        self.assertEqual(q_u_db['q4']['u4'].number_of_repetitions, 2)
+        self.assertEqual(q_u_db['q4']['u5'].number_of_repetitions, 1)
 
     def test_subsume_those_not_present(self):
         config = DotDict()
@@ -300,7 +300,7 @@ class TestQueryCollection(TestCase):
         test_q_u_db.subsume_those_not_present_in(reference_q_u_db)
 
         self.assertTrue('*' in test_q_u_db)
-        self.assertEqual(test_q_u_db['*']['*'].count, 8)
+        self.assertEqual(test_q_u_db['*']['*'].number_of_repetitions, 8)
         self.assertTrue('u9' not in test_q_u_db['q4'])
 
     @patch("builtins.open", new_callable=mock_open, read_data=

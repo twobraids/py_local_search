@@ -138,9 +138,9 @@ class TestHeadList(TestCase):
         for query, url in optin_db.iter_records():
             url_stats = optin_db[query][url]
             if query == '*':
-                self.assertEqual(url_stats.count, 500)
+                self.assertEqual(url_stats.number_of_repetitions, 500)
             else:
-                self.assertEqual(url_stats.count, 100)
+                self.assertEqual(url_stats.number_of_repetitions, 100)
 
         head_list.calculate_probabilities_relative_to(optin_db)
 
@@ -182,13 +182,13 @@ class TestHeadList(TestCase):
 
         optin_db.subsume_those_not_present_in(head_list)
         self.assertTrue('*' in optin_db)
-        self.assertEqual(optin_db['*']['*'].count, 500)
-        self.assertEqual(head_list['*']['*'].count, 1)
+        self.assertEqual(optin_db['*']['*'].number_of_repetitions, 500)
+        self.assertEqual(head_list['*']['*'].number_of_repetitions, 1)
         self.assertEqual(head_list['*'].probability, 0.0)
 
         head_list.calculate_probabilities_relative_to(optin_db)
-        self.assertEqual(optin_db['*']['*'].count, 500)
-        self.assertEqual(head_list['*']['*'].count, 1)
+        self.assertEqual(optin_db['*']['*'].number_of_repetitions, 500)
+        self.assertEqual(head_list['*']['*'].number_of_repetitions, 1)
         self.assertEqual(head_list['*'].probability, 0.5)
 
         head_list.subsume_entries_beyond_max_size()
@@ -196,8 +196,8 @@ class TestHeadList(TestCase):
         for prob, query_str in head_list.probability_sorted_index.iteritems():
             print('{} {}'.format(prob, query_str))
 
-        self.assertEqual(optin_db['*']['*'].count, 500)
-        self.assertEqual(head_list['*']['*'].count, 1)
+        self.assertEqual(optin_db['*']['*'].number_of_repetitions, 500)
+        self.assertEqual(head_list['*']['*'].number_of_repetitions, 1)
         self.assertEqual(head_list['*'].probability, 0.6)
 
         # why 5 if m is 2?
@@ -261,7 +261,7 @@ class TestHeadList(TestCase):
         for query, url in head_list.iter_records():
             url_stats = head_list[query][url]
             # TODO: how do we determine that these values are correct?
-            print(query, url, url_stats.count, url_stats.probability, url_stats.variance)
+            print(query, url, url_stats.number_of_repetitions, url_stats.probability, url_stats.variance)
 
     def test_round_trip_json(self):
         config = configuration(

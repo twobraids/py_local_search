@@ -57,28 +57,28 @@ class URLStats(JsonPickleBase):
     """
     def __init__(self, config, count=0):
         self.config = config  # constants and configuration
-        self.count = count  # number of repeats of this URL
+        self.number_of_repetitions = count  # number of repeats of this URL
         self.probability = 0.0  # the computed probability of this URL
         self.variance = 0.0  # the variance of this URL
 
     def increment_count(self, amount=1):
-        self.count += amount
+        self.number_of_repetitions += amount
 
     def subsume(self, other_URLStats):
-        self.count += other_URLStats.count
+        self.number_of_repetitions += other_URLStats.number_of_repetitions
         self.probability += other_URLStats.probability
-        other_URLStats.count = 0
+        other_URLStats.number_of_repetitions = 0
         other_URLStats.probability = 0.0
 
     def print(self, indent=0):
-        print('{}count={}'.format(' ' * indent, self.count))
+        print('{}count={}'.format(' ' * indent, self.number_of_repetitions))
         print("{}prob={}".format(' ' * indent, self.probability))
         print("{}vari={}".format(' ' * indent, self.variance))
 
     def calculate_probability_relative_to(self, other_query_url_mapping, query_str="*", url_str="*", b=0.0, head_list=None):
         y = laplace(b)  # TODO: understand and select correct parameter
         self.probability = (
-            (other_query_url_mapping[query_str][url_str].count + y) / other_query_url_mapping.number_of_query_url_pairs
+            (other_query_url_mapping[query_str][url_str].number_of_repetitions + y) / other_query_url_mapping.number_of_query_url_pairs
         )
 
     def calculate_variance_relative_to(self, other_query_url_mapping, query_str='*', url_str='*', b_t=0.0):
@@ -121,10 +121,10 @@ class Query(MutableMapping, JsonPickleBase, RequiredConfig):
 
     def subsume(self, query, url_str):
         url_stats = query[url_str]
-        self.number_of_urls += url_stats.count
+        self.number_of_urls += url_stats.number_of_repetitions
         self.probability += url_stats.probability
         #self.variance
-        query.number_of_urls -= url_stats.count
+        query.number_of_urls -= url_stats.number_of_repetitions
         query.probability -= url_stats.probability
         self['*'].subsume(url_stats)
 
@@ -149,11 +149,11 @@ class Query(MutableMapping, JsonPickleBase, RequiredConfig):
 
     def __setitem__(self, url, item):
         try:
-            self.number_of_urls -= self.urls[url].count
+            self.number_of_urls -= self.urls[url].number_of_repetitions
         except KeyError:
             pass
         self.urls[url] = item
-        self.number_of_urls += item.count
+        self.number_of_urls += item.number_of_repetitions
 
     def __delitem__(self, url):
         del self.urls[url]

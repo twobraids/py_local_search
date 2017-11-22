@@ -124,7 +124,7 @@ class HeadList(QueryCollection):
         assert self.config.tau >= 1.0
         for query_str, url_str in optin_database_s.iter_records():
             y = laplace(self.config.b_s)  # TODO: understand and select correct parameter
-            if optin_database_s[query_str][url_str].count + y > self.config.tau:
+            if optin_database_s[query_str][url_str].number_of_repetitions + y > self.config.tau:
                 self.add((query_str, url_str))
         self.add(('*', '*'))
 
@@ -161,7 +161,7 @@ class HeadList(QueryCollection):
                 to_be_deleted_list.append((query_str, url_str))
 
         for query_str, url_str in to_be_deleted_list:
-            self.number_of_query_url_pairs -= self[query_str][url_str].count
+            self.number_of_query_url_pairs -= self[query_str][url_str].number_of_repetitions
             del self[query_str][url_str]
             if not len(self[query_str]):
                 del self[query_str]

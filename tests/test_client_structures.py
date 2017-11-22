@@ -33,12 +33,12 @@ class TestClientUrlStats(TestCase):
         urls.add('fred')
 
         self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].count, 1)
+        self.assertEqual(urls['fred'].number_of_repetitions, 1)
 
         urls.add('fred')
 
         self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].count, 2)
+        self.assertEqual(urls['fred'].number_of_repetitions, 2)
 
     def test_touch(self):
         config = DotDict()
@@ -47,22 +47,22 @@ class TestClientUrlStats(TestCase):
         urls.touch('fred')
 
         self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].count, 0)
+        self.assertEqual(urls['fred'].number_of_repetitions, 0)
 
         urls.touch('fred')
 
         self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].count, 0)
+        self.assertEqual(urls['fred'].number_of_repetitions, 0)
 
         urls.add('fred')
 
         self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].count, 1)
+        self.assertEqual(urls['fred'].number_of_repetitions, 1)
 
     def test_subsume(self):
         config = {}
         stats_counter_1 = ClientURLStats(config)
-        stats_counter_1.count = 17
+        stats_counter_1.number_of_repetitions = 17
         stats_counter_1.probability = 0.5
 
         stats_counter_2 = ClientURLStats(config)
@@ -70,7 +70,7 @@ class TestClientUrlStats(TestCase):
         stats_counter_2.probability = 0.25
         stats_counter_1.subsume(stats_counter_2)
 
-        self.assertEqual(stats_counter_1.count, 18)
-        self.assertEqual(stats_counter_2.count, 0)
+        self.assertEqual(stats_counter_1.number_of_repetitions, 18)
+        self.assertEqual(stats_counter_2.number_of_repetitions, 0)
         self.assertEqual(stats_counter_1.probability, 0.75)
 
