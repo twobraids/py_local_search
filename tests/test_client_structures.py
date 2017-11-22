@@ -22,55 +22,55 @@ class TestClientUrlStats(TestCase):
     def test_instantiation(self):
         config = DotDict()
         config.url_stats_class = ClientURLStats
-        urls = Query(config)
-        self.assertTrue(urls.config is config)
-        self.assertTrue(isinstance(urls.urls, Mapping))
+        a_query = Query(config)
+        self.assertTrue(a_query.config is config)
+        self.assertTrue(isinstance(a_query.urls, Mapping))
 
     def test_add(self):
         config = DotDict()
         config.url_stats_class = ClientURLStats
-        urls = Query(config)
-        urls.add('fred')
+        a_query = Query(config)
+        a_query.add('fred')
 
-        self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].number_of_repetitions, 1)
+        self.assertTrue('fred' in a_query)
+        self.assertEqual(a_query['fred'].number_of_repetitions, 1)
 
-        urls.add('fred')
+        a_query.add('fred')
 
-        self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].number_of_repetitions, 2)
+        self.assertTrue('fred' in a_query)
+        self.assertEqual(a_query['fred'].number_of_repetitions, 2)
 
     def test_touch(self):
         config = DotDict()
         config.url_stats_class = ClientURLStats
-        urls = Query(config)
-        urls.touch('fred')
+        a_query = Query(config)
+        a_query.touch('fred')
 
-        self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].number_of_repetitions, 0)
+        self.assertTrue('fred' in a_query)
+        self.assertEqual(a_query['fred'].number_of_repetitions, 0)
 
-        urls.touch('fred')
+        a_query.touch('fred')
 
-        self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].number_of_repetitions, 0)
+        self.assertTrue('fred' in a_query)
+        self.assertEqual(a_query['fred'].number_of_repetitions, 0)
 
-        urls.add('fred')
+        a_query.add('fred')
 
-        self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].number_of_repetitions, 1)
+        self.assertTrue('fred' in a_query)
+        self.assertEqual(a_query['fred'].number_of_repetitions, 1)
 
     def test_subsume(self):
         config = {}
-        stats_counter_1 = ClientURLStats(config)
-        stats_counter_1.number_of_repetitions = 17
-        stats_counter_1.probability = 0.5
+        url_stats_1 = ClientURLStats(config)
+        url_stats_1.number_of_repetitions = 17
+        url_stats_1.probability = 0.5
 
-        stats_counter_2 = ClientURLStats(config)
-        stats_counter_2.increment_count()
-        stats_counter_2.probability = 0.25
-        stats_counter_1.subsume(stats_counter_2)
+        url_stats_2 = ClientURLStats(config)
+        url_stats_2.increment_count()
+        url_stats_2.probability = 0.25
+        url_stats_1.subsume(url_stats_2)
 
-        self.assertEqual(stats_counter_1.number_of_repetitions, 18)
-        self.assertEqual(stats_counter_2.number_of_repetitions, 0)
-        self.assertEqual(stats_counter_1.probability, 0.75)
+        self.assertEqual(url_stats_1.number_of_repetitions, 18)
+        self.assertEqual(url_stats_2.number_of_repetitions, 0)
+        self.assertEqual(url_stats_1.probability, 0.75)
 

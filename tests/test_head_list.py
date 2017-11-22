@@ -52,10 +52,10 @@ class TestHeadListQuery(TestCase):
         config = DotDict()
         config.url_stats_class = URLStats
 
-        urls = HeadListQuery(config)
-        self.assertTrue(urls.config is config)
-        self.assertTrue(isinstance(urls.urls, Mapping))
-        self.assertEqual(urls.tau, 0.0)
+        a_query = HeadListQuery(config)
+        self.assertTrue(a_query.config is config)
+        self.assertTrue(isinstance(a_query.urls, Mapping))
+        self.assertEqual(a_query.tau, 0.0)
 
     def test_calculate_tau(self):
         config = DotDict()
@@ -65,13 +65,13 @@ class TestHeadListQuery(TestCase):
         config.delta_prime_u = 1.0
         config.url_stats_class = URLStats
 
-        urls = HeadListQuery(config)
-        urls.add('u1')
-        urls.add('u2')
-        urls.calculate_tau()
+        a_query = HeadListQuery(config)
+        a_query.add('u1')
+        a_query.add('u2')
+        a_query.calculate_tau()
 
-        self.assertEqual(urls.number_of_urls, 2.0)
-        self.assertAlmostEqual(urls.tau, 0.865529289)
+        self.assertEqual(a_query.number_of_urls, 2.0)
+        self.assertAlmostEqual(a_query.tau, 0.865529289)
 
 
 class TestHeadList(TestCase):
@@ -89,9 +89,9 @@ class TestHeadList(TestCase):
         self.assertEqual(config.head_list_db.head_list_class, HeadList)
         self.assertEqual(config.optin_db.optin_db_class, QueryCollection)
 
-        q_u_db = config.optin_db.optin_db_class(config.optin_db)
+        a_query_collection = config.optin_db.optin_db_class(config.optin_db)
 
-        optin_db = load_tiny_data(q_u_db)
+        optin_db = load_tiny_data(a_query_collection)
 
         head_list = create_preliminary_headlist(config.head_list_db, optin_db)
 
@@ -193,9 +193,6 @@ class TestHeadList(TestCase):
 
         head_list.subsume_entries_beyond_max_size()
 
-        for prob, query_str in head_list.probability_sorted_index.iteritems():
-            print('{} {}'.format(prob, query_str))
-
         self.assertEqual(optin_db['*']['*'].number_of_repetitions, 500)
         self.assertEqual(head_list['*']['*'].number_of_repetitions, 1)
         self.assertEqual(head_list['*'].probability, 0.6)
@@ -223,8 +220,8 @@ class TestHeadList(TestCase):
         # ensure that the sum of all probabilities in the head_list
         # is extremely close to 1.0  (summing floats is frequently imprecise)
         sum = 0.0
-        for query in head_list.keys():
-            sum += head_list[query].probability
+        for query_str in head_list.keys():
+            sum += head_list[query_str].probability
         self.assertAlmostEqual(sum, 1.0)
 
     @patch('blender.in_memory_structures.laplace',)

@@ -23,52 +23,52 @@ class TestURLStats(TestCase):
 
     def test_instantiation(self):
         config = {}
-        new_stats_counter = URLStats(config)
-        self.assertTrue(new_stats_counter.config is config)
-        self.assertEqual(new_stats_counter.number_of_repetitions, 0)
+        url_stats = URLStats(config)
+        self.assertTrue(url_stats.config is config)
+        self.assertEqual(url_stats.number_of_repetitions, 0)
 
-        new_stats_counter = URLStats(config, 16)
-        self.assertEqual(new_stats_counter.number_of_repetitions, 16)
+        url_stats = URLStats(config, 16)
+        self.assertEqual(url_stats.number_of_repetitions, 16)
 
     def test_increment_count(self):
         config = {}
-        new_stats_counter = URLStats(config)
-        self.assertEqual(new_stats_counter.number_of_repetitions, 0)
-        new_stats_counter.increment_count()
-        self.assertEqual(new_stats_counter.number_of_repetitions, 1)
+        url_stats = URLStats(config)
+        self.assertEqual(url_stats.number_of_repetitions, 0)
+        url_stats.increment_count()
+        self.assertEqual(url_stats.number_of_repetitions, 1)
 
     def test_add(self):
         config = DotDict()
         config.url_stats_class = URLStats
-        urls = Query(config)
-        urls.add('fred')
+        a_query = Query(config)
+        a_query.add('fred')
 
-        self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].number_of_repetitions, 1)
+        self.assertTrue('fred' in a_query)
+        self.assertEqual(a_query['fred'].number_of_repetitions, 1)
 
-        urls.add('fred')
+        a_query.add('fred')
 
-        self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].number_of_repetitions, 2)
+        self.assertTrue('fred' in a_query)
+        self.assertEqual(a_query['fred'].number_of_repetitions, 2)
 
     def test_touch(self):
         config = DotDict()
         config.url_stats_class = URLStats
-        urls = Query(config)
-        urls.touch('fred')
+        a_query = Query(config)
+        a_query.touch('fred')
 
-        self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].number_of_repetitions, 0)
+        self.assertTrue('fred' in a_query)
+        self.assertEqual(a_query['fred'].number_of_repetitions, 0)
 
-        urls.touch('fred')
+        a_query.touch('fred')
 
-        self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].number_of_repetitions, 0)
+        self.assertTrue('fred' in a_query)
+        self.assertEqual(a_query['fred'].number_of_repetitions, 0)
 
-        urls.add('fred')
+        a_query.add('fred')
 
-        self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].number_of_repetitions, 1)
+        self.assertTrue('fred' in a_query)
+        self.assertEqual(a_query['fred'].number_of_repetitions, 1)
 
     def test_subsume(self):
         config = {}
@@ -93,14 +93,14 @@ class TestURLStats(TestCase):
         # to test the resultant values in the equations that use laplace
         laplace_mock.return_value = 0.0
 
-        other_url_url_mapping = MagicMock()
-        other_url_url_mapping['q1']['u1'].number_of_repetitions = 10.0
-        other_url_url_mapping.number_of_query_url_pairs = 100.0
+        other_query_collection = MagicMock()
+        other_query_collection['q1']['u1'].number_of_repetitions = 10.0
+        other_query_collection.number_of_query_url_pairs = 100.0
 
         config = {}
         stats_counter_1 = URLStats(config)
         stats_counter_1.calculate_probability_relative_to(
-            other_url_url_mapping,
+            other_query_collection,
             query_str='q1',
             url_str='u1'
         )
@@ -108,14 +108,14 @@ class TestURLStats(TestCase):
         self.assertEqual(stats_counter_1.probability, 0.1)
 
     def test_calculate_variance_relative_to(self):
-        other_url_url_mapping = MagicMock()
-        other_url_url_mapping.number_of_query_url_pairs = 100.0
+        other_query_collection = MagicMock()
+        other_query_collection.number_of_query_url_pairs = 100.0
 
         config = {}
         stats_counter_1 = URLStats(config)
         stats_counter_1.probability = 0.1
         stats_counter_1.calculate_variance_relative_to(
-            other_url_url_mapping,
+            other_query_collection,
             b_t=1.0
         )
         print(stats_counter_1.variance)
@@ -134,35 +134,35 @@ class TestQuery(TestCase):
     def test_add(self):
         config = DotDict()
         config.url_stats_class = URLStats
-        urls = Query(config)
-        urls.add('fred')
+        a_query = Query(config)
+        a_query.add('fred')
 
-        self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].number_of_repetitions, 1)
+        self.assertTrue('fred' in a_query)
+        self.assertEqual(a_query['fred'].number_of_repetitions, 1)
 
-        urls.add('fred')
+        a_query.add('fred')
 
-        self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].number_of_repetitions, 2)
+        self.assertTrue('fred' in a_query)
+        self.assertEqual(a_query['fred'].number_of_repetitions, 2)
 
     def test_touch(self):
         config = DotDict()
         config.url_stats_class = URLStats
-        urls = Query(config)
-        urls.touch('fred')
+        a_query = Query(config)
+        a_query.touch('fred')
 
-        self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].number_of_repetitions, 0)
+        self.assertTrue('fred' in a_query)
+        self.assertEqual(a_query['fred'].number_of_repetitions, 0)
 
-        urls.touch('fred')
+        a_query.touch('fred')
 
-        self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].number_of_repetitions, 0)
+        self.assertTrue('fred' in a_query)
+        self.assertEqual(a_query['fred'].number_of_repetitions, 0)
 
-        urls.add('fred')
+        a_query.add('fred')
 
-        self.assertTrue('fred' in urls)
-        self.assertEqual(urls['fred'].number_of_repetitions, 1)
+        self.assertTrue('fred' in a_query)
+        self.assertEqual(a_query['fred'].number_of_repetitions, 1)
 
     def test_subsume(self):
         config = DotDict()
@@ -189,51 +189,51 @@ class TestQueryCollection(TestCase):
         config = DotDict()
         config.url_stats_class = URLStats
         config.query_class = Query
-        q_u_db = QueryCollection(config)
+        a_query_collection = QueryCollection(config)
 
-        self.assertTrue(q_u_db.config is config)
-        self.assertTrue(isinstance(q_u_db.queries, Mapping))
-        self.assertEqual(q_u_db.number_of_query_url_pairs, 0)
+        self.assertTrue(a_query_collection.config is config)
+        self.assertTrue(isinstance(a_query_collection.queries, Mapping))
+        self.assertEqual(a_query_collection.number_of_query_url_pairs, 0)
 
     def test_append_star_values(self):
         config = DotDict()
         config.url_stats_class = URLStats
         config.query_class = Query
-        q_u_db = QueryCollection(config)
-        q_u_db.add(('a_query', 'a_url'))
-        q_u_db.append_star_values()
+        a_query_collection = QueryCollection(config)
+        a_query_collection.add(('a_query', 'a_url'))
+        a_query_collection.append_star_values()
 
-        self.assertTrue('a_query' in q_u_db)
-        self.assertTrue('a_url' in q_u_db['a_query'])
-        self.assertTrue('*' in q_u_db['a_query'])
-        self.assertEqual(q_u_db.number_of_query_url_pairs, 1)
-        self.assertEqual(q_u_db['a_query'].number_of_urls, 1)
-        self.assertEqual(q_u_db['*'].number_of_urls, 0)
+        self.assertTrue('a_query' in a_query_collection)
+        self.assertTrue('a_url' in a_query_collection['a_query'])
+        self.assertTrue('*' in a_query_collection['a_query'])
+        self.assertEqual(a_query_collection.number_of_query_url_pairs, 1)
+        self.assertEqual(a_query_collection['a_query'].number_of_urls, 1)
+        self.assertEqual(a_query_collection['*'].number_of_urls, 0)
 
     def test_add(self):
         config = DotDict()
         config.url_stats_class = URLStats
         config.query_class = Query
-        q_u_db = QueryCollection(config)
-        q_u_db.add(('a_query', 'a_url'))
+        a_query_collection = QueryCollection(config)
+        a_query_collection.add(('a_query', 'a_url'))
 
-        self.assertTrue('a_query' in q_u_db)
-        self.assertTrue('a_url' in q_u_db['a_query'])
-        self.assertEqual(q_u_db.number_of_query_url_pairs, 1)
-        self.assertEqual(q_u_db['a_query'].number_of_urls, 1)
+        self.assertTrue('a_query' in a_query_collection)
+        self.assertTrue('a_url' in a_query_collection['a_query'])
+        self.assertEqual(a_query_collection.number_of_query_url_pairs, 1)
+        self.assertEqual(a_query_collection['a_query'].number_of_urls, 1)
 
-        q_u_db.add(('a_query', 'a_url'))
-        self.assertTrue('a_query' in q_u_db)
-        self.assertTrue('a_url' in q_u_db['a_query'])
-        self.assertEqual(q_u_db['a_query']['a_url'].number_of_repetitions, 2)
-        self.assertEqual(q_u_db.number_of_query_url_pairs, 2)
+        a_query_collection.add(('a_query', 'a_url'))
+        self.assertTrue('a_query' in a_query_collection)
+        self.assertTrue('a_url' in a_query_collection['a_query'])
+        self.assertEqual(a_query_collection['a_query']['a_url'].number_of_repetitions, 2)
+        self.assertEqual(a_query_collection.number_of_query_url_pairs, 2)
 
     def test_iter_records(self):
         config = DotDict()
         config.url_stats_class = URLStats
         config.query_class = Query
-        q_u_db = QueryCollection(config)
-        q_u_pairs = [
+        a_query_collection = QueryCollection(config)
+        a_list_of_query_url_pairs = [
             ('q1', 'u1'),
             ('q1', 'u1'),
             ('q2', 'u1'),
@@ -243,32 +243,32 @@ class TestQueryCollection(TestCase):
             ('q4', 'u5'),
             ('q4', 'u4'),
         ]
-        for q_u in q_u_pairs:
-            q_u_db.add(q_u)
+        for query_url_pair in a_list_of_query_url_pairs:
+            a_query_collection.add(query_url_pair)
 
-        for i, q_u in enumerate(q_u_pairs):
-            q, u = q_u
-            self.assertTrue(q in q_u_db)
-            self.assertTrue(u in q_u_db[q])
+        for i, query_url_pair in enumerate(a_list_of_query_url_pairs):
+            q, u = query_url_pair
+            self.assertTrue(q in a_query_collection)
+            self.assertTrue(u in a_query_collection[q])
 
         # count of keys
-        self.assertEqual(len(q_u_db), 4)
+        self.assertEqual(len(a_query_collection), 4)
         # count of all pairs even duplicates
-        self.assertEqual(q_u_db.number_of_query_url_pairs, 8)
+        self.assertEqual(a_query_collection.number_of_query_url_pairs, 8)
 
-        self.assertEqual(q_u_db['q1']['u1'].number_of_repetitions, 2)
-        self.assertEqual(q_u_db['q2']['u1'].number_of_repetitions, 1)
-        self.assertEqual(q_u_db['q2']['u2'].number_of_repetitions, 1)
-        self.assertEqual(q_u_db['q3']['u3'].number_of_repetitions, 1)
-        self.assertEqual(q_u_db['q4']['u4'].number_of_repetitions, 2)
-        self.assertEqual(q_u_db['q4']['u5'].number_of_repetitions, 1)
+        self.assertEqual(a_query_collection['q1']['u1'].number_of_repetitions, 2)
+        self.assertEqual(a_query_collection['q2']['u1'].number_of_repetitions, 1)
+        self.assertEqual(a_query_collection['q2']['u2'].number_of_repetitions, 1)
+        self.assertEqual(a_query_collection['q3']['u3'].number_of_repetitions, 1)
+        self.assertEqual(a_query_collection['q4']['u4'].number_of_repetitions, 2)
+        self.assertEqual(a_query_collection['q4']['u5'].number_of_repetitions, 1)
 
     def test_subsume_those_not_present(self):
         config = DotDict()
         config.url_stats_class = URLStats
         config.query_class = Query
-        reference_q_u_db = QueryCollection(config)
-        q_u_pairs = [
+        reference_query_collection = QueryCollection(config)
+        reference_list_of_query_url_pairs = [
             ('q1', 'u1'),
             ('q1', 'u1'),
             ('q2', 'u1'),
@@ -278,13 +278,13 @@ class TestQueryCollection(TestCase):
             ('q4', 'u5'),
             ('q4', 'u4'),
         ]
-        for q_u in q_u_pairs:
-            reference_q_u_db.add(q_u)
+        for query_url_pair in reference_list_of_query_url_pairs:
+            reference_query_collection.add(query_url_pair)
 
-        test_q_u_db = QueryCollection(config)
-        for q_u in q_u_pairs:
-            test_q_u_db.add(q_u)
-        additional_q_u_pairs = [
+        test_query_collection = QueryCollection(config)
+        for query_url_pair in reference_list_of_query_url_pairs:
+            test_query_collection.add(query_url_pair)
+        additional_query_url_pairs = [
             ('q5', 'u1'),
             ('q6', 'u1'),
             ('q7', 'u1'),
@@ -294,14 +294,14 @@ class TestQueryCollection(TestCase):
             ('q7', 'u5'),
             ('q4', 'u9'),
         ]
-        for q_u in additional_q_u_pairs:
-            test_q_u_db.add(q_u)
+        for query_url_pair in additional_query_url_pairs:
+            test_query_collection.add(query_url_pair)
 
-        test_q_u_db.subsume_those_not_present_in(reference_q_u_db)
+        test_query_collection.subsume_those_not_present_in(reference_query_collection)
 
-        self.assertTrue('*' in test_q_u_db)
-        self.assertEqual(test_q_u_db['*']['*'].number_of_repetitions, 8)
-        self.assertTrue('u9' not in test_q_u_db['q4'])
+        self.assertTrue('*' in test_query_collection)
+        self.assertEqual(test_query_collection['*']['*'].number_of_repetitions, 8)
+        self.assertTrue('u9' not in test_query_collection['q4'])
 
     @patch("builtins.open", new_callable=mock_open, read_data=
         '["q1","u1"]\n'
@@ -315,16 +315,16 @@ class TestQueryCollection(TestCase):
         config = DotDict()
         config.url_stats_class = URLStats
         config.query_class = Query
-        reference_q_u_db = QueryCollection(config)
+        reference_query_collection = QueryCollection(config)
 
-        reference_q_u_db.load("somefile")
+        reference_query_collection.load("somefile")
 
-        self.assertEqual(reference_q_u_db.number_of_query_url_pairs, 3)
-        self.assertTrue("q1" in reference_q_u_db)
-        self.assertTrue("u1" in reference_q_u_db["q1"])
-        self.assertTrue("u2" in reference_q_u_db["q1"])
-        self.assertEqual(reference_q_u_db["q1"].number_of_urls, 2)
-        self.assertTrue("q2" in reference_q_u_db)
-        self.assertTrue("u3" in reference_q_u_db["q2"])
-        self.assertEqual(reference_q_u_db["q2"].number_of_urls, 1)
+        self.assertEqual(reference_query_collection.number_of_query_url_pairs, 3)
+        self.assertTrue("q1" in reference_query_collection)
+        self.assertTrue("u1" in reference_query_collection["q1"])
+        self.assertTrue("u2" in reference_query_collection["q1"])
+        self.assertEqual(reference_query_collection["q1"].number_of_urls, 2)
+        self.assertTrue("q2" in reference_query_collection)
+        self.assertTrue("u3" in reference_query_collection["q2"])
+        self.assertEqual(reference_query_collection["q2"].number_of_urls, 1)
 
