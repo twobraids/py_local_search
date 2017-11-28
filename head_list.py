@@ -47,7 +47,7 @@ class HeadListQuery(Query):
             /
             (exp(self.config.epsilon_prime_u) + self.number_of_urls - 1.0)
         )
-        self.kappa_q = len(self)
+        self.kappa_q = self.number_of_unique_urls
 
     def subsume(self, query, url_str):
         # this method does not have to chain the subsume down the inheritance heirarchy nor the
@@ -180,7 +180,7 @@ class HeadList(QueryCollection):
 
     def calculate_tau(self):
         """from Figure 6 LocalAlg, lines 4-6"""
-        self.kappa = len(self)
+        self.kappa = self.number_of_queries
         self.tau = (
             (exp(self.config.epsilon_prime_q) + (self.config.delta_prime_q / 2.0) * (self.number_of_query_url_pairs - 1))
             /

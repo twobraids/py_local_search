@@ -274,6 +274,11 @@ def estimate_client_probabilities(config, head_list, client_database):
 
     probability_varience_vectors = config.client_db.client_db_class(config.client_db)
 
+    probability_varience_vectors.calculate_probabilities_relative_to(
+            client_database,
+            head_list
+        )
+
     return probability_varience_vectors
 
 

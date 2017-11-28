@@ -115,6 +115,10 @@ class Query(MutableMapping, JsonPickleBase, RequiredConfig):
         self.probability = 0
         self.variance = 0
 
+    @property
+    def number_of_unique_urls(self):
+        return len(self)
+
     def touch(self, url):
         """add a url without incrementing the count - this is used to add the star url *"""
         self.urls[url]
@@ -165,8 +169,8 @@ class Query(MutableMapping, JsonPickleBase, RequiredConfig):
     def __len__(self):
         return len(self.urls)
 
-    def __contains__(self, key):
-        return key in self.urls
+    def __contains__(self, key_str):
+        return key_str in self.urls
 
 
 # --------------------------------------------------------------------------------------------------------
@@ -195,6 +199,10 @@ class QueryCollection(MutableMapping, JsonPickleBase, RequiredConfig):
         # the configuration in during instantiation
         self.queries = defaultdict(partial(self.config.query_class, self.config))
         self.number_of_query_url_pairs = 0
+
+    @property
+    def number_of_queries(self):
+        return len(self)
 
     def append_star_values(self):
         # from 1-3 of EstimateClientProbabilities Figure 5.

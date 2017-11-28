@@ -61,8 +61,7 @@ class ClientQuery(Query):
 
     def calculate_probabilities_relative_to(self, other_query_url_mapping, head_list):
         # from Figure 5, line 10
-        for query_str in head_list.keys():
-            # from Figure 5, line 11
+        for query_str in head_list.keys():           # from Figure 5, line 11
             # this is very ambiguous: "the fraction of queries q in D_c"
             # does it mean that <q1, u1>, <q1, u2> is counted as two queries
             # or only one?
@@ -114,4 +113,19 @@ class ClientQuery(Query):
 #        2nd Level structures as the value
 
 class ClientQueryCollection(QueryCollection):
-    pass
+
+    def calculate_probabilities_relative_to(self, other_query, head_list):
+        """This is from the Blender paper, Figure 4"""
+        # Figure 4: lines 10 - 12
+        for query_str in head_list:
+            self[query_str].calculate_probability_relative_to(
+                other_query,
+                head_list_query,
+                query_str=query_str,
+                b=self.config.b_t,
+            )
+            if query_str != '*':
+                # we don't need to index the <*, *> case
+                self.probability_sorted_index[self[query_str].probability].append(query_str)
+
+
