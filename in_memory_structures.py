@@ -76,7 +76,7 @@ class URLStats(JsonPickleBase, RequiredConfig):
         print("{}vari={}".format(' ' * indent, self.variance))
 
     def calculate_probability_relative_to(self, other_query_url_mapping, query_str="*", url_str="*", head_list=None):
-        y = laplace(self.config.b)  # TODO: understand and select correct parameter
+        y = laplace(0.0, self.config.b)
         self.probability = (
             (other_query_url_mapping[query_str][url_str].number_of_repetitions + y) / other_query_url_mapping.number_of_query_url_pairs
         )
@@ -135,16 +135,6 @@ class Query(MutableMapping, JsonPickleBase, RequiredConfig):
     def update_probability(self, url_stats):
         # used by HeadList object
         self.probability += url_stats.probability
-
-    def calculate_probabilities_relative_to(self, other_query_url_mapping, head_list=None):
-        """This is from the Blender paper, Figure 4"""
-        # Figure 4: lines 10 - 12
-        for query_str in self.keys():
-            self[query_str].calculate_probability_relative_to(
-                other_query_url_mapping,
-                query_str=query_str,
-                head_list=head_list
-            )
 
     def add(self, url):
         self.urls[url].increment_count()

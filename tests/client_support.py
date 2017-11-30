@@ -25,13 +25,13 @@ def local_alg(config, head_list, local_query_url_iter):
             # there is confusion on the significance of a database structure has only unqiue <q, u> pairs
             # or duplicates.  Some code clearly allows duplicates.  the definiton of |D| is for unique or
             # with duplicates?
-            alt_query = choice(head_list.keys())
-            alt_url = choice(head_list[alt_query].keys())
+            alt_query = choice(list(head_list.keys()))
+            alt_url = choice(list(head_list[alt_query].keys()))
             yield alt_query, alt_url
             continue
 
         if random() <= (1 - head_list[a_query].tau):
-            alt_url = head_list[a_query].keys()
+            alt_url = choice(list(head_list[a_query].keys()))
             yield a_query, alt_url
             continue
 

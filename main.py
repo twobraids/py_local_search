@@ -60,6 +60,12 @@ required_config.add_option(
     doc="the pathname of the client_database json formated as [query, url] pairs"
 )
 
+required_config.add_option(
+    "output_filename",
+    default='client.data',
+    doc="the pathname of the final probabilities output"
+)
+
 
 # the following are constants calculated in Figure 6 LocalAlg and then
 # referenced in EstimateClientProbabilities Figure 5. While they are
@@ -185,11 +191,11 @@ default_data_structures = {  # keyed by the use case
     },
     "final_probabilities": {
         # level 1
-        "final_probabilites_db_class": "blender.in_memory_structures.QueryCollection",
+        "final_probabilites_db_class": "blender.final_structures.FinalQueryCollection",
         # level 2
         "query_class": "blender.in_memory_structures.Query",
         # level 3
-        "url_stats_class": "blender.final_structures.URLStats"
+        "url_stats_class": "blender.final_structures.FinalURLStats"
     },
 }
 
@@ -208,6 +214,7 @@ def create_preliminary_headlist(config, optin_database_s):
         config -
         optin_database_s -
     """
+    print ('create_preliminary_headlist')
     preliminary_head_list = config.head_list_db.head_list_class(config.head_list_db)
     preliminary_head_list.create_headlist(optin_database_s)
 
@@ -221,6 +228,7 @@ def estimate_optin_probabilities(preliminary_head_list, optin_database_t):
         preliminary_head_list -
         optin_database_t -
     """
+    print ('estimate_optin_probabilities')
     optin_database_t.subsume_those_not_present_in(preliminary_head_list)
     preliminary_head_list.calculate_probabilities_relative_to(optin_database_t)
     preliminary_head_list.subsume_entries_beyond_max_size()
@@ -272,14 +280,11 @@ def estimate_client_probabilities(config, head_list, client_database):
     # constants, their calculation was moved to the initialization of configuration
     # The constants can be accessed in configuration
 
-    probability_varience_vectors = config.client_db.client_db_class(config.client_db)
+    print ('estimate_client_probabilities')
 
-    probability_varience_vectors.calculate_probabilities_relative_to(
-            client_database,
-            head_list
-        )
+    client_database.calculate_probabilities(head_list)
 
-    return probability_varience_vectors
+    return client_database
 
 
 # Blender merge
@@ -293,6 +298,7 @@ def blend_probabilities(config, optin_probabilities, client_probabilities):
     # entities.  They're much more easily stored in the same data structure to avoid a lot
     # duplicated keys and values.
 
+    print ('blend_probabilities')
     final_probabilities = config.final_probabilities.final_probabilites_db_class(
         config.final_probabilities
     )
@@ -308,6 +314,31 @@ def blend_probabilities(config, optin_probabilities, client_probabilities):
 
 
 if __name__ == "__main__":
+
+    from functools import partial
+    from collections import Mapping
+    import json
+
+    from blender.tests.client_support import local_alg
+
+    def client_load_iter(file_name):
+        with open(file_name, encoding='utf-8') as optin_data_source:
+            for record_str in optin_data_source:
+                record = json.loads(record_str)
+                yield record
+
+    def print_config(config, indent=0):
+        for key in config:
+            if key.startswith('_'):
+                continue
+            value = config[key]
+            if isinstance(value, Mapping):
+                print ("{}{}:".format(' ' * indent, key))
+                print_config(value, indent + 4)
+                continue
+            print("{}{} - {}".format(' ' * indent, key, value))
+
+
     # this line handles getting configuration information from the command
     # line or any configuration files that might exist.
 
@@ -339,6 +370,8 @@ if __name__ == "__main__":
             command_line,
         ]
     )
+    print_config(config)
+
 
     # create & read optin_database_s
     optin_database_s = config.optin_db.optin_db_class(
@@ -367,7 +400,9 @@ if __name__ == "__main__":
     client_database = config.client_db.client_db_class(
         config.client_db
     )
-    client_database.load(config.client_database_filename)
+    print ('client_database.load')
+    for record in local_alg(config, head_list_for_distribution, partial(client_load_iter, config.client_database_filename)):
+        client_database.add(record)
 
     client_stats = estimate_client_probabilities(
         config,
@@ -376,6 +411,9 @@ if __name__ == "__main__":
     )
 
     final_stats = blend_probabilities(
+        config,
         head_list_for_distribution,
         client_stats
     )
+
+    final_stats.write(config.output_filename)

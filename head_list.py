@@ -91,7 +91,9 @@ class HeadList(QueryCollection):
         doc="maximum size of the final headlist",
     )
     required_config.add_aggregation(
-        "b",  # from Figure #3, line 6 renamed as simply b
+        # from Figure #3, line 6 renamed as simply b since the originals from the paper
+        # bs and bt have the same definition
+        "b",
         lambda config, local_config, arg: 2.0 * config.m_o / config.epsilon
     )
     required_config.add_aggregation(
@@ -121,7 +123,7 @@ class HeadList(QueryCollection):
         # from Figure 3, CreateHeadList, line 7
         assert self.config.tau >= 1.0
         for query_str, url_str in optin_database_s.iter_records():
-            y = laplace(self.config.b)
+            y = laplace(0.0, self.config.b)
             if optin_database_s[query_str][url_str].number_of_repetitions + y > self.config.tau:
                 self.add((query_str, url_str))
         self.add(('*', '*'))
