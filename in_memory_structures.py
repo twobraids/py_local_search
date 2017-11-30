@@ -50,7 +50,7 @@ class JsonPickleBase(object):
 # 3rd Level Structures
 #     Contains a single url's stats
 #     see constructor for attributes
-class URLStats(JsonPickleBase):
+class URLStats(JsonPickleBase, RequiredConfig):
     """Lowest level of the nested mappings. This is the data associated with a URL.
     This data structure will likely be modified to include page title and excerpt
     at sometime in the future.
@@ -75,17 +75,17 @@ class URLStats(JsonPickleBase):
         print("{}prob={}".format(' ' * indent, self.probability))
         print("{}vari={}".format(' ' * indent, self.variance))
 
-    def calculate_probability_relative_to(self, other_query_url_mapping, query_str="*", url_str="*", b=0.0, head_list=None):
-        y = laplace(b)  # TODO: understand and select correct parameter
+    def calculate_probability_relative_to(self, other_query_url_mapping, query_str="*", url_str="*", head_list=None):
+        y = laplace(self.config.b)  # TODO: understand and select correct parameter
         self.probability = (
             (other_query_url_mapping[query_str][url_str].number_of_repetitions + y) / other_query_url_mapping.number_of_query_url_pairs
         )
 
-    def calculate_variance_relative_to(self, other_query_url_mapping, query_str='*', url_str='*', b_t=0.0):
+    def calculate_variance_relative_to(self, other_query_url_mapping, query_str='*', url_str='*'):
         self.variance = (
             (self.probability * (1.0 - self.probability)) / (other_query_url_mapping.number_of_query_url_pairs - 1.0)
             +
-            (2.0 * b_t * b_t) / (other_query_url_mapping.number_of_query_url_pairs * (other_query_url_mapping.number_of_query_url_pairs - 1.0))
+            (2.0 * self.config.b * self.config.b) / (other_query_url_mapping.number_of_query_url_pairs * (other_query_url_mapping.number_of_query_url_pairs - 1.0))
         )
 
 
@@ -135,6 +135,16 @@ class Query(MutableMapping, JsonPickleBase, RequiredConfig):
     def update_probability(self, url_stats):
         # used by HeadList object
         self.probability += url_stats.probability
+
+    def calculate_probabilities_relative_to(self, other_query_url_mapping, head_list=None):
+        """This is from the Blender paper, Figure 4"""
+        # Figure 4: lines 10 - 12
+        for query_str in self.keys():
+            self[query_str].calculate_probability_relative_to(
+                other_query_url_mapping,
+                query_str=query_str,
+                head_list=head_list
+            )
 
     def add(self, url):
         self.urls[url].increment_count()

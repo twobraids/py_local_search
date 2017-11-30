@@ -12,8 +12,6 @@ from blender.in_memory_structures import (
 class ClientURLStats(URLStats):
     def __init__(self, config, count=0):
         super(ClientURLStats, self).__init__(config, count)
-        self.probability = 0.0  # the computed probability of this URL
-        self.variance = 0.0  # the variance of this URL
 
     def calculate_probability_relative_to(self, other_query_url_mapping, query_str='*', url_str='*', r_c_q_u=0.0, head_list=None):
         other_query = other_query_url_mapping[query_str]
@@ -59,51 +57,47 @@ class ClientQuery(Query):
         self.probability = 0.0  # TODO
         self.variance = 0.0  # TODO
 
-    def calculate_probabilities_relative_to(self, other_query_url_mapping, head_list):
-        # from Figure 5, line 10
-        for query_str in head_list.keys():           # from Figure 5, line 11
-            # this is very ambiguous: "the fraction of queries q in D_c"
-            # does it mean that <q1, u1>, <q1, u2> is counted as two queries
-            # or only one?
-            fraction_of_this_query_in_other_mapping = (
-                other_query_url_mapping[query_str].number_of_urls / other_query_url_mapping.number_of_query_url_pairs
-            )
-            ratio = (1.0 - head_list.tau) / (head_list.kappa - 1.0)
-            # from Figure 5, line 12
-            self.probability = (
-                (fraction_of_this_query_in_other_mapping - ratio)
-                /
-                (head_list.tau - ratio)
-            )
-            # from Figure 5, line 13
-            self.variance = (
-                (1.0 / pow(head_list.tau - ratio, 2))
-                *
-                (fraction_of_this_query_in_other_mapping * (1 - fraction_of_this_query_in_other_mapping))
-                /
-                (other_query_url_mapping.number_of_query_url_pairs - 1)
-            )
+    def calculate_probabilities_relative_to(self, other_query_url_mapping, query_str, head_list=None):
+        # from Figure 5, line 11
+        fraction_of_this_query_in_other_mapping = (
+            other_query_url_mapping[query_str].number_of_urls / other_query_url_mapping.number_of_query_url_pairs
+        )
+        ratio = (1.0 - head_list.tau) / (head_list.kappa - 1.0)
+        # from Figure 5, line 12
+        self.probability = (
+            (fraction_of_this_query_in_other_mapping - ratio)
+            /
+            (head_list.tau - ratio)
+        )
+        # from Figure 5, line 13
+        self.variance = (
+            (1.0 / pow(head_list.tau - ratio, 2))
+            *
+            (fraction_of_this_query_in_other_mapping * (1 - fraction_of_this_query_in_other_mapping))
+            /
+            (other_query_url_mapping.number_of_query_url_pairs - 1)
+        )
 
-            # from Figure 5, line 14
-            for url_str in head_list[query_str]:
-                other_url = other_query_url_mapping[query_str][url_str]
-                # Figure 5, line 15
-                r_c_q_u = other_url.number_of_urls / other_query_url_mapping.number_of_query_url_pairs  # TODO: rename
-                # Figure 5, line 16 implemented in the
-                self[query_str][url_str].calculate_probability_relative_to(
-                    other_query_url_mapping,
-                    query_str=query_str,
-                    url_str=url_str,
-                    r_c_q_u=r_c_q_u,
-                    head_list=None
-                )
-                self[query_str][url_str].calculate_variance_relative_to(
-                    other_query_url_mapping,
-                    query_str=query_str,
-                    url_str=url_str,
-                    r_c_q_u=r_c_q_u,
-                    head_list=None
-                )
+        # from Figure 5, line 14
+        for url_str in head_list[query_str]:
+            other_url = other_query_url_mapping[query_str][url_str]
+            # Figure 5, line 15
+            r_c_q_u = other_url.number_of_urls / other_query_url_mapping.number_of_query_url_pairs  # TODO: rename
+            # Figure 5, line 16 implemented in the
+            self[query_str][url_str].calculate_probability_relative_to(
+                other_query_url_mapping,
+                query_str=query_str,
+                url_str=url_str,
+                r_c_q_u=r_c_q_u,
+                head_list=None
+            )
+            self[query_str][url_str].calculate_variance_relative_to(
+                other_query_url_mapping,
+                query_str=query_str,
+                url_str=url_str,
+                r_c_q_u=r_c_q_u,
+                head_list=None
+            )
 
 
 # --------------------------------------------------------------------------------------------------------
@@ -114,18 +108,11 @@ class ClientQuery(Query):
 
 class ClientQueryCollection(QueryCollection):
 
-    def calculate_probabilities_relative_to(self, other_query, head_list):
+    def calculate_probabilities(self, head_list):
         """This is from the Blender paper, Figure 4"""
-        # Figure 4: lines 10 - 12
-        for query_str in head_list:
-            self[query_str].calculate_probability_relative_to(
-                other_query,
-                head_list_query,
-                query_str=query_str,
-                b=self.config.b_t,
-            )
-            if query_str != '*':
-                # we don't need to index the <*, *> case
-                self.probability_sorted_index[self[query_str].probability].append(query_str)
+        assert head_list.number_of_queries >= self.number_of_queries
+        assert head_list.number_of_query_url_pairs >= self.number_of_query_url_pairs
 
+        # we want the client probabilities calcualated relative to itself.
+        self.calculate_probabilities_relative_to(self, head_list=head_list)
 

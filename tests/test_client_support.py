@@ -88,7 +88,7 @@ from blender.in_memory_structures import (
         #config.head_list_db.head_list_class = HeadList
         #config.head_list_db.url_stats_class = URLStats
         #config.head_list_db.query_class = Query
-        #config.head_list_db.b_s = 5.0
+        #config.head_list_db.b = 5.0
         #config.head_list_db.tau = 83.06062179501248
 
         #optin_db = self._create_optin_db_01(config.optin_db)

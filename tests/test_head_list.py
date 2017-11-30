@@ -84,7 +84,7 @@ class TestHeadList(TestCase):
             ]
         )
 
-        self.assertEqual(config.head_list_db.b_s, 5.0)
+        self.assertEqual(config.head_list_db.b, 5.0)
         self.assertEqual(config.head_list_db.tau, 83.06062179501248)
         self.assertEqual(config.head_list_db.head_list_class, HeadList)
         self.assertEqual(config.optin_db.optin_db_class, QueryCollection)

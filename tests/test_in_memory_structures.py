@@ -97,7 +97,7 @@ class TestURLStats(TestCase):
         other_query_collection['q1']['u1'].number_of_repetitions = 10.0
         other_query_collection.number_of_query_url_pairs = 100.0
 
-        config = {}
+        config = DotDict({'b': 0.0})
         stats_counter_1 = URLStats(config)
         stats_counter_1.calculate_probability_relative_to(
             other_query_collection,
@@ -111,12 +111,11 @@ class TestURLStats(TestCase):
         other_query_collection = MagicMock()
         other_query_collection.number_of_query_url_pairs = 100.0
 
-        config = {}
+        config = DotDict({'b': 1})
         stats_counter_1 = URLStats(config)
         stats_counter_1.probability = 0.1
         stats_counter_1.calculate_variance_relative_to(
             other_query_collection,
-            b_t=1.0
         )
         print(stats_counter_1.variance)
         self.assertAlmostEqual(stats_counter_1.variance, 0.00111111)

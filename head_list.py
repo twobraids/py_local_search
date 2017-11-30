@@ -59,13 +59,12 @@ class HeadListQuery(Query):
         self['*'].probability += url_stats.probability
         url_stats.probability = 0.0
 
-    def calculate_probability_relative_to(self, other_query_url_mapping, query_str="*", b=0.0, head_list=None):
+    def calculate_probability_relative_to(self, other_query_url_mapping, query_str="*", head_list=None):
         for url in self.keys():
             self[url].calculate_probability_relative_to(
                 other_query_url_mapping,
                 query_str=query_str,
                 url_str=url,
-                b=self.config.b_t,
             )
             self.update_probability(self[url])
             # the original algorthim in Figure 4 calculated o_2 (sigma/variance) at this point.
@@ -92,7 +91,7 @@ class HeadList(QueryCollection):
         doc="maximum size of the final headlist",
     )
     required_config.add_aggregation(
-        "b_s",  # from Figure #3, line 6
+        "b",  # from Figure #3, line 6 renamed as simply b
         lambda config, local_config, arg: 2.0 * config.m_o / config.epsilon
     )
     required_config.add_aggregation(
@@ -103,10 +102,10 @@ class HeadList(QueryCollection):
             (ln(exp(config.epsilon/2.0) + config.m_o - 1.0) - ln(config.delta))
         )
     )
-    required_config.add_aggregation(
-        "b_t",  # from Figure #4, line 9 - notice same definition as "b_s"
-        lambda config, local_config, arg: 2.0 * config.m_o / config.epsilon
-    )
+    #required_config.add_aggregation(
+        #"b_t",  # from Figure #4, line 9 - notice same definition as "b_s"
+        #lambda config, local_config, arg: 2.0 * config.m_o / config.epsilon
+    #)
 
     def __init__(self, config):
         super(HeadList, self).__init__(config)
@@ -118,31 +117,28 @@ class HeadList(QueryCollection):
         self.k = 0
 
     def create_headlist(self, optin_database_s):
-        """this is the implementation of the Figure 3 CreateHeadList from the Blender paper"""
         # Figure 3, line 6-7 were moved to configuration of this object
         # from Figure 3, CreateHeadList, line 7
         assert self.config.tau >= 1.0
         for query_str, url_str in optin_database_s.iter_records():
-            y = laplace(self.config.b_s)  # TODO: understand and select correct parameter
+            y = laplace(self.config.b)
             if optin_database_s[query_str][url_str].number_of_repetitions + y > self.config.tau:
                 self.add((query_str, url_str))
         self.add(('*', '*'))
 
-    def calculate_probabilities_relative_to(self, other_query_url_mapping):
-        """This is from the Blender paper, Figure 4"""
+    def calculate_probabilities_relative_to(self, other_query_url_mapping, head_list=None):
         # Figure 4: lines 10 - 12
         for query_str in self.keys():
             self[query_str].calculate_probability_relative_to(
                 other_query_url_mapping,
                 query_str=query_str,
-                b=self.config.b_t,
+                head_list=head_list
             )
             if query_str != '*':
                 # we don't need to index the <*, *> case
                 self.probability_sorted_index[self[query_str].probability].append(query_str)
 
     def subsume_entries_beyond_max_size(self):
-        """This is part of the algorithm from the Blender paper, Figure 4"""
         # Figure 4: line 14
         to_be_deleted_list = []
         if '*' not in self:
@@ -169,13 +165,11 @@ class HeadList(QueryCollection):
     def calculate_variance_relative_to(self, other_query_url_mapping):
         """This is part of the algorithm from the Blender paper, Figure 4"""
         # Figure 4: line 15 & 13
-        b_t = 2.0 * self.config.m_o / self.config.epsilon
         for query_str, url_str in self.iter_records():
             self[query_str][url_str].calculate_variance_relative_to(
                 other_query_url_mapping,
                 query_str=query_str,
                 url_str=url_str,
-                b_t=b_t
             )
 
     def calculate_tau(self):
