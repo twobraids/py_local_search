@@ -57,13 +57,13 @@ class ClientURLStats(URLStats):
         term_4 = 1.0 / pow(head_list.tau, 2) / pow(head_list_query.tau - ((1.0 - head_list_query.tau) / (head_list_query.number_of_unique_urls - 1.0)), 2)
         self.variance = (term_1 + term_2 + term_3) * term_4
 
+
 # --------------------------------------------------------------------------------------------------------
 # 2nd Level Structures
 #     Contains a single query's stats and urls
 #     Mapping
 #         urls are the key
 #         3rd Level structures as the value
-
 class ClientQuery(Query):
     def __init__(self, config):
         super(ClientQuery, self).__init__(config)
@@ -116,7 +116,6 @@ class ClientQuery(Query):
 #    Mapping
 #        queries serve as the key
 #        2nd Level structures as the value
-
 class ClientQueryCollection(QueryCollection):
 
     def calculate_probabilities(self, head_list):
@@ -127,7 +126,6 @@ class ClientQueryCollection(QueryCollection):
         # we want the client probabilities calcualated relative to itself.
         self.calculate_probabilities_relative_to(self, head_list=head_list)
 
-
     def calculate_probabilities_relative_to(self, other_query_url_mapping, head_list=None):
         """This is from the Blender paper, Figure 4"""
         # Figure 4: lines 10 - 12
@@ -137,4 +135,3 @@ class ClientQueryCollection(QueryCollection):
                 query_str=query_str,
                 head_list=head_list
             )
-

@@ -326,4 +326,3 @@ class TestQueryCollection(TestCase):
         self.assertTrue("q2" in reference_query_collection)
         self.assertTrue("u3" in reference_query_collection["q2"])
         self.assertEqual(reference_query_collection["q2"].number_of_urls, 1)
-

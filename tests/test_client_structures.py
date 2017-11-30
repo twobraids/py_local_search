@@ -1,19 +1,13 @@
 from unittest import TestCase
 from mock import (
     Mock,
-    MagicMock
 )
 
 from collections import (
-    Mapping,
     defaultdict
 )
 from configman.dotdict import (
     DotDict
-)
-
-from blender.in_memory_structures import (
-    Query,
 )
 
 from blender.client_structures import (
@@ -132,6 +126,7 @@ class TestClientQuery(TestCase):
         query = ClientQuery(config)
 
         # TODO: I have no idea how to reasonably test this
+
 
 class TestClientQueryCollection(TestCase):
 

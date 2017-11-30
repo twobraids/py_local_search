@@ -294,4 +294,3 @@ class TestHeadList(TestCase):
         equivalent = jsonpickle.decode(frozen)
         frozen2 = jsonpickle.encode(equivalent)
         self.assertEqual(frozen, frozen2)
-

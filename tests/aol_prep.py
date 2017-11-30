@@ -111,7 +111,6 @@ print('writing {}'.format(config.temp_data_filename))
 with open(config.temp_data_filename, encoding='utf-8', mode="w") as o:
     for user in all_data.keys():
         shuffle(all_data[user])
-        #print('---------->> {}'.format(all_data[user][:config.max_records_per_user][0]))
         o.write("{}\n".format(json.dumps(all_data[user][:config.max_records_per_user][0])))
 
 print('reading {}'.format(config.temp_data_filename))
@@ -119,7 +118,6 @@ print('reading {}'.format(config.temp_data_filename))
 all_pairs = []
 with open(config.temp_data_filename, encoding='utf-8') as f:
     for raw_record in f:
-        #print('|{}|'.format(raw_record))
         all_pairs.append(json.loads(raw_record.strip()))
 
 print('shuffling data')

@@ -78,14 +78,16 @@ class URLStats(JsonPickleBase, RequiredConfig):
     def calculate_probability_relative_to(self, other_query_url_mapping, query_str="*", url_str="*", head_list=None):
         y = laplace(0.0, self.config.b)
         self.probability = (
-            (other_query_url_mapping[query_str][url_str].number_of_repetitions + y) / other_query_url_mapping.number_of_query_url_pairs
+            (other_query_url_mapping[query_str][url_str].number_of_repetitions + y) /
+            other_query_url_mapping.number_of_query_url_pairs
         )
 
     def calculate_variance_relative_to(self, other_query_url_mapping, query_str='*', url_str='*', head_list=None):
         self.variance = (
             (self.probability * (1.0 - self.probability)) / (other_query_url_mapping.number_of_query_url_pairs - 1.0)
             +
-            (2.0 * self.config.b * self.config.b) / (other_query_url_mapping.number_of_query_url_pairs * (other_query_url_mapping.number_of_query_url_pairs - 1.0))
+            (2.0 * self.config.b * self.config.b) /
+            (other_query_url_mapping.number_of_query_url_pairs * (other_query_url_mapping.number_of_query_url_pairs - 1.0))
         )
 
 
@@ -127,7 +129,6 @@ class Query(MutableMapping, JsonPickleBase, RequiredConfig):
         url_stats = query[url_str]
         self.number_of_urls += url_stats.number_of_repetitions
         self.probability += url_stats.probability
-        #self.variance
         query.number_of_urls -= url_stats.number_of_repetitions
         query.probability -= url_stats.probability
         self['*'].subsume(url_stats)
@@ -273,4 +274,3 @@ class QueryCollection(MutableMapping, JsonPickleBase, RequiredConfig):
 
     def __contains__(self, key):
         return key in self.queries
-

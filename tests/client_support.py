@@ -7,6 +7,7 @@ from numpy.random import (
     choice,
 )
 
+
 def local_alg(config, head_list, local_query_url_iter):
     """to be used in testing as in production, it will be executed by the client.  It should, therefore,
     be written in Javascript or, even better, Rust"""

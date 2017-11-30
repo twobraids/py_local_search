@@ -74,4 +74,3 @@ small_set = [
     ('q8', 'q8u8', 45),
 ]
 load_small_data = partial(load_synthetic_data_set, small_set)
-

@@ -201,4 +201,3 @@ class HeadList(QueryCollection):
             key_list = list()
         key_list.append('probability_sorted_index')
         return super(HeadList, self).__getstate__(key_list)
-

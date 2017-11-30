@@ -214,7 +214,7 @@ def create_preliminary_headlist(config, optin_database_s):
         config -
         optin_database_s -
     """
-    print ('create_preliminary_headlist')
+    print('create_preliminary_headlist')
     preliminary_head_list = config.head_list_db.head_list_class(config.head_list_db)
     preliminary_head_list.create_headlist(optin_database_s)
 
@@ -228,7 +228,7 @@ def estimate_optin_probabilities(preliminary_head_list, optin_database_t):
         preliminary_head_list -
         optin_database_t -
     """
-    print ('estimate_optin_probabilities')
+    print('estimate_optin_probabilities')
     optin_database_t.subsume_those_not_present_in(preliminary_head_list)
     preliminary_head_list.calculate_probabilities_relative_to(optin_database_t)
     preliminary_head_list.subsume_entries_beyond_max_size()
@@ -280,7 +280,7 @@ def estimate_client_probabilities(config, head_list, client_database):
     # constants, their calculation was moved to the initialization of configuration
     # The constants can be accessed in configuration
 
-    print ('estimate_client_probabilities')
+    print('estimate_client_probabilities')
 
     client_database.calculate_probabilities(head_list)
 
@@ -298,7 +298,7 @@ def blend_probabilities(config, optin_probabilities, client_probabilities):
     # entities.  They're much more easily stored in the same data structure to avoid a lot
     # duplicated keys and values.
 
-    print ('blend_probabilities')
+    print('blend_probabilities')
     final_probabilities = config.final_probabilities.final_probabilites_db_class(
         config.final_probabilities
     )
@@ -333,11 +333,10 @@ if __name__ == "__main__":
                 continue
             value = config[key]
             if isinstance(value, Mapping):
-                print ("{}{}:".format(' ' * indent, key))
+                print("{}{}:".format(' ' * indent, key))
                 print_config(value, indent + 4)
                 continue
             print("{}{} - {}".format(' ' * indent, key, value))
-
 
     # this line handles getting configuration information from the command
     # line or any configuration files that might exist.
@@ -372,7 +371,6 @@ if __name__ == "__main__":
     )
     print_config(config)
 
-
     # create & read optin_database_s
     optin_database_s = config.optin_db.optin_db_class(
         config.optin_db
@@ -400,7 +398,7 @@ if __name__ == "__main__":
     client_database = config.client_db.client_db_class(
         config.client_db
     )
-    print ('client_database.load')
+    print('client_database.load')
     for record in local_alg(config, head_list_for_distribution, partial(client_load_iter, config.client_database_filename)):
         client_database.add(record)
 
