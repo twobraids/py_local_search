@@ -81,7 +81,7 @@ class URLStats(JsonPickleBase, RequiredConfig):
             (other_query_url_mapping[query_str][url_str].number_of_repetitions + y) / other_query_url_mapping.number_of_query_url_pairs
         )
 
-    def calculate_variance_relative_to(self, other_query_url_mapping, query_str='*', url_str='*'):
+    def calculate_variance_relative_to(self, other_query_url_mapping, query_str='*', url_str='*', head_list=None):
         self.variance = (
             (self.probability * (1.0 - self.probability)) / (other_query_url_mapping.number_of_query_url_pairs - 1.0)
             +
@@ -112,8 +112,8 @@ class Query(MutableMapping, JsonPickleBase, RequiredConfig):
         self.config = config
         self.urls = defaultdict(partial(self.config.url_stats_class, self.config))
         self.number_of_urls = 0
-        self.probability = 0
-        self.variance = 0
+        self.probability = 0.0
+        self.variance = 0.0
 
     @property
     def number_of_unique_urls(self):
