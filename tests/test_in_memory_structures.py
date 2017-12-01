@@ -104,7 +104,7 @@ class TestURLStats(TestCase):
             query_str='q1',
             url_str='u1'
         )
-        laplace_mock.assert_called_once_with(0.0)
+        laplace_mock.assert_called_once_with(0.0, 0.0)
         self.assertEqual(stats_counter_1.probability, 0.1)
 
     def test_calculate_variance_relative_to(self):
