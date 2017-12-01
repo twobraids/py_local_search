@@ -19,7 +19,7 @@ class ClientURLStats(URLStats):
         # to avoid a divide by zero error when processing the <*, *> case.  The original C#
         # includes a similar line and action to take in this case is derived from that code.
         if head_list_query.number_of_unique_urls == 1:
-            self.probabilty = head_list_query.probability
+            self.probability = head_list_query.probability
             return
 
         other_query = other_query_url_mapping[query_str]
