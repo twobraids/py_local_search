@@ -319,6 +319,10 @@ if __name__ == "__main__":
     from collections import Mapping
     import json
 
+    from configman.converters import (
+        to_str
+    )
+
     from blender.tests.client_support import local_alg
 
     def client_load_iter(file_name):
@@ -328,15 +332,21 @@ if __name__ == "__main__":
                 yield record
 
     def print_config(config, indent=0):
-        for key in config:
-            if key.startswith('_'):
+        keys = sorted(config.keys())
+        namespaces = []
+        for key in keys:
+            if key.startswith('_') or key.startswith('admin') or key == 'help':
                 continue
             value = config[key]
             if isinstance(value, Mapping):
-                print("{}{}:".format(' ' * indent, key))
-                print_config(value, indent + 4)
+                namespaces.append(key)
                 continue
-            print("{}{} - {}".format(' ' * indent, key, value))
+            print("{}{}: {}".format(' ' * indent, key, to_str(value)))
+        for key in namespaces:
+            value = config[key]
+            print("{}{}:".format(' ' * indent, key))
+            print_config(value, indent + 4)
+
 
     # this line handles getting configuration information from the command
     # line or any configuration files that might exist.
@@ -369,7 +379,9 @@ if __name__ == "__main__":
             command_line,
         ]
     )
-    print_config(config)
+    print('config:')
+    print_config(config, 4)
+    print('---------------------')
 
     # create & read optin_database_s
     optin_database_s = config.optin_db.optin_db_class(
@@ -377,30 +389,35 @@ if __name__ == "__main__":
     )
     optin_database_s.load(config.optin_database_s_filename)
 
+    print('optin_db_s:\n\tnumber_of_records:{}\n\tnumber_of_queries:{}'.format(optin_database_s.number_of_query_url_pairs, optin_database_s.number_of_queries))
+
     # create preliminary head list
     preliminary_head_list = create_preliminary_headlist(
         config,
         optin_database_s
     )
+    print('preliminary_head_list:\n\tnumber_of_records:{}\n\tnumber_of_queries:{}'.format(preliminary_head_list.number_of_query_url_pairs, preliminary_head_list.number_of_queries))
 
     # create & read optin_database_t
     optin_database_t = config.optin_db.optin_db_class(
         config.optin_db
     )
     optin_database_t.load(config.optin_database_t_filename)
+    print('optin_db_t:\n\tnumber_of_records:{}\n\tnumber_of_queries:{}'.format(optin_database_t.number_of_query_url_pairs, optin_database_t.number_of_queries))
 
     head_list_for_distribution = estimate_optin_probabilities(
         preliminary_head_list,
         optin_database_t
     )
+    print('head_list_for_distribution:\n\tnumber_of_records:{}\n\tnumber_of_queries:{}'.format(head_list_for_distribution.number_of_query_url_pairs, head_list_for_distribution.number_of_queries))
 
     # create and load client database
     client_database = config.client_db.client_db_class(
         config.client_db
     )
-    print('client_database.load')
     for record in local_alg(config, head_list_for_distribution, partial(client_load_iter, config.client_database_filename)):
         client_database.add(record)
+    print('client_database:\n\tnumber_of_records:{}\n\tnumber_of_queries:{}'.format(client_database.number_of_query_url_pairs, client_database.number_of_queries))
 
     client_stats = estimate_client_probabilities(
         config,
