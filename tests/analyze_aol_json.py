@@ -2,6 +2,7 @@
 
 import json
 from collections import defaultdict
+from functools import reduce
 
 focused_queries = {
     "google": 0,
@@ -16,7 +17,7 @@ focused_queries = {
     "*": 0,
 }
 
-all_data_keyed_clientid = defaultdict(list)
+all_data_keyed_by_clientid = defaultdict(list)
 number_of_query_url_pairs = 0
 with open('aol.json', encoding='utf-8') as f:
     for client_query_url_json_str in f:
@@ -24,14 +25,16 @@ with open('aol.json', encoding='utf-8') as f:
         client_id = client_query_url_tuple['clientId']
         query_str = client_query_url_tuple['query']
         url_str = client_query_url_tuple['url']
-        all_data_keyed_clientid[client_id].append((query_str, url_str))
+        all_data_keyed_by_clientid[client_id].append((query_str, url_str))
         number_of_query_url_pairs += 1
         if query_str in focused_queries:
             focused_queries[query_str] += 1
         else:
             focused_queries['*'] += 1
 
-print('number of unique users: {}'.format(len(all_data_keyed_clientid.keys())))
+assert number_of_query_url_pairs == reduce(lambda x, y: x + y, focused_queries.values(), 0)
+print('number of unique users: {}'.format(len(all_data_keyed_by_clientid.keys())))
+print('number of <query, url> pairs: {}'.format(number_of_query_url_pairs))
 print('focused queries:')
 for key, value in focused_queries.items():
     print('  {}: {} {}'.format(key, value, float(value) / float(number_of_query_url_pairs)))
