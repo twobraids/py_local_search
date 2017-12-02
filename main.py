@@ -44,25 +44,25 @@ required_config.add_option(
 
 required_config.add_option(
     "optin_database_s_filename",
-    default='optin_s.data',
+    default='optin_s.data.json',
     doc="the pathname of the optin_database_s formated as [query, url] pairs"
 )
 
 required_config.add_option(
     "optin_database_t_filename",
-    default='optin_t.data',
+    default='optin_t.data.json',
     doc="the pathname of the optin_database_t json formated as [query, url] pairs"
 )
 
 required_config.add_option(
     "client_database_filename",
-    default='client.data',
+    default='client.data.json',
     doc="the pathname of the client_database json formated as [query, url] pairs"
 )
 
 required_config.add_option(
     "output_filename",
-    default='client.data',
+    default='out.data',
     doc="the pathname of the final probabilities output"
 )
 
@@ -193,7 +193,7 @@ default_data_structures = {  # keyed by the use case
         # level 1
         "final_probabilites_db_class": "blender.final_structures.FinalQueryCollection",
         # level 2
-        "query_class": "blender.in_memory_structures.Query",
+        "query_class": "blender.final_structures.FinalQuery",
         # level 3
         "url_stats_class": "blender.final_structures.FinalURLStats"
     },
@@ -302,6 +302,7 @@ def blend_probabilities(config, optin_probabilities, client_probabilities):
     final_probabilities = config.final_probabilities.final_probabilites_db_class(
         config.final_probabilities
     )
+    final_probabilities.calculate_probability_relative_to(client_probabilities, optin_probabilities)
     for query, url in optin_probabilities.iter_records():
         final_probabilities[query][url].calculate_probability_relative_to(
             client_probabilities,

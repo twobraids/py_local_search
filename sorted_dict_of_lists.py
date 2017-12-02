@@ -16,3 +16,4 @@ class SortedDictOfLists(SortedDict):
         for key in reversed(self.keys()):
             for value in self[key]:
                 yield key, value
+
